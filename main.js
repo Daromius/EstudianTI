@@ -42,11 +42,7 @@ $(document).ready(function(){
   // Get URL params
   var params = new URLSearchParams(window.location.search);
 
-  // Check if URL has the file GET parameter, use it to set the room. Could rewrite URL to be more fancy
-  if (params.has('file')) {
-    room = params.get('file');
-    $("#share-url").val(window.location.href);
-  }
+ 
 
   // Oddly enough Firebase auth doesn't initialize right on startup. It needs a slight delay?
   window.setTimeout(function(){
@@ -84,11 +80,6 @@ map.locate({setView: true, maxZoom: 20});
     $("img[src='https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png']").remove();
   }
 
-  // Hints for drawing lines or polygons
-  var followcursor = L.marker([0, 0], {pane: "overlayPane", interactive:false}).addTo(map);
-  followcursor.setOpacity(0);
-  var tooltip = followcursor.bindTooltip("", { permanent: true, offset:[5,25], sticky: true, className: "hints", direction:"right"}).addTo(map);
-  followcursor.closeTooltip();
 
   // Show live location
   function liveLocation() {
