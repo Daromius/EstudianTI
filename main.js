@@ -886,6 +886,10 @@ map.locate({setView: true, maxZoom: 20});
           checkData();
         } else {
           // Prompt the user with a popup to create a map
+          $("#popup").find(".header-text").html("Create a map");
+          $("#popup").find(".subheader-text").html("Maps can be shared with friends to collaborate in real-time.");
+          $("#google-signin").attr("id", "create-map");
+          $("#create-map").html("Create a map");
         }
       });
     });
