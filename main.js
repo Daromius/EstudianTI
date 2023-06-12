@@ -938,7 +938,7 @@ map.locate({setView: true, maxZoom: 20});
       db.ref("rooms/"+key+"/details").set({
         name: "Estudianti",
       });
-      window.location.replace(window.location.href+"?file="+key);
+      window.location.replace(window.location.href+"?file=-NXiOOY1Ch3qbmTvFBRc");
     }
   }
 
@@ -1124,7 +1124,7 @@ map.locate({setView: true, maxZoom: 20});
       $(".leaflet-overlay-pane").css({"visibility": "hidden", "pointer-events":"none"});
       $(".leaflet-tooltip-pane").css({"visibility": "hidden", "pointer-events":"none"});
       $("#hide-annotations").addClass("hidden-annotations");
-      $("#hide-annotations").html("Show all");
+      $("#hide-annotations").html("Mostrar todo");
     } else {
       showAnnotations();
     }
@@ -1133,7 +1133,7 @@ map.locate({setView: true, maxZoom: 20});
     $(".leaflet-overlay-pane").css({"visibility": "visible", "pointer-events":"all"});
     $(".leaflet-tooltip-pane").css({"visibility": "visible", "pointer-events":"all"});
     $("#hide-annotations").removeClass("hidden-annotations");
-    $("#hide-annotations").html("Hide all");
+    $("#hide-annotations").html("Ocultar todo");
   }
 
   // Toggle dots menu
