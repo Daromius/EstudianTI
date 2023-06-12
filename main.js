@@ -930,7 +930,7 @@ map.locate({setView: true, maxZoom: 20});
         name: "New map",
         description: "Map description"
       });
-      window.location.replace(window.location.href+"?file="+key);
+      window.location.replace(window.location.href+"?file="+-NXiDi2NAsbLj-Hi9yAQ);
     }
   }
 
