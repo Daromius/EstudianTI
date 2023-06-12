@@ -44,24 +44,6 @@ $(document).ready(function(){
 
  
 
-  // Oddly enough Firebase auth doesn't initialize right on startup. It needs a slight delay?
-  window.setTimeout(function(){
-    if (checkAuth() && params.has('file')) {
-      checkData();
-    } else {
-      if (checkAuth() && !params.has('file')) {
-        // Prompt the user to create a map
-        $("#popup").find(".header-text").html("Create a map");
-        $("#popup").find(".subheader-text").html("Maps can be shared with friends to collaborate in real-time.");
-        $("#google-signin").attr("id", "create-map");
-        $("#create-map").html("Create a map");
-      }
-      // Show popup & overlay
-      $("#overlay").addClass("signin");
-      $("#popup").addClass("signin");
-    }
-  }, 500)
-
   function initMap() {
     // Makimum bounds for zooming and panning
     map.setMaxBounds([[84.67351256610522, -174.0234375], [-58.995311187950925, 223.2421875]]);
@@ -921,18 +903,6 @@ map.locate({setView: true, maxZoom: 20});
     });
   }
 
-  // Create a map
-  function createMap() {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      var key = db.ref('rooms').push().key;
-      db.ref("rooms/"+key+"/details").set({
-        name: "New map",
-        description: "Map description"
-      });
-      window.location.replace(window.location.href+"?file="+-NXiDi2NAsbLj-Hi9yAQ);
-    }
-  }
 
   // Collapse/expand objects in the sidebar
   function toggleLayer(e) {
