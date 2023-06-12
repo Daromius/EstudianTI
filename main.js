@@ -936,8 +936,7 @@ map.locate({setView: true, maxZoom: 20});
     if (checkAuth() != false) {
       var key = db.ref('rooms').push().key;
       db.ref("rooms/"+key+"/details").set({
-        name: "New map",
-        description: "Map description"
+        name: "Estudianti",
       });
       window.location.replace(window.location.href+"?file="+key);
     }
