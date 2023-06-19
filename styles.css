@@ -428,9 +428,9 @@ th img {
 /* Map */
 #mapDiv {
   position: absolute;
-  left: 338px;
+  left: 45px;
   height: 100%;
-  width: calc(100% - 338px);
+  width: 100%;
   top: 0px;
   box-sizing: border-box;
 }
@@ -474,7 +474,7 @@ th img {
   font-size: 15px;
   border-radius: 5px;
   position: absolute;
-  left: calc(calc(100% - 338px) / 2);
+  left: 33%;
   transform: translateX(calc(-50% + 338px));
   top: 15px;
   box-sizing: border-box;
@@ -512,7 +512,7 @@ th img {
 /* Drawing tools */
 #drawing-controls {
   position: absolute;
-  left: calc(calc(100% - 338px) / 2);
+  left: 33%;
   transform: translateX(calc(-50% + 338px));
   height: 48px;
   background-color: #FFF;

@@ -7,46 +7,98 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <link rel="stylesheet" href="styles.css"/>
   <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
+  <style>
+   body {
+      font-family: "Lato", sans-serif;
+   }
+
+   .sidebar {
+      height: 100%;
+      width: 350px;
+      position: absolute;
+      z-index: 99999;
+      top: 0;
+      left: 0;
+      background-color: #ffffff;
+      overflow-x: hidden;
+      transition: 0.5s;
+      padding-top: 30px;
+   }
+
+   .sidebar a {
+      padding: 8px 8px 8px 32px;
+      text-decoration: none;
+      font-size: 25px;
+      color: #EEEEEE;
+      display: block;
+      transition: 0.3s;
+   }
+
+   .sidebar a:hover {
+      color: #f1f1f1;
+   }
+
+   .sidebar .closebtn {
+      position: absolute;
+      top: 0;
+      right: 25px;
+      font-size: 36px;
+      margin-left: 50px;
+   }
+
+   .openbtn {
+      font-size: 20px;
+      cursor: pointer;
+      color: black;
+      padding: 10px 15px;
+      border: none;
+   }
+
+   .openbtn:hover {
+      background-color: #444;
+   }
+
+   #content {
+      transition: margin-left 0.5s;
+      padding: 16px;
+   }
+
+   /* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+
+   @media screen and (max-height: 450px) {
+      .sidebar {
+         padding-top: 15px;
+      }
+      .sidebar a {
+         font-size: 18px;
+      }
+   }
+   </style>
 </head>
 <body style="margin:0px;">
-  <div id="share">
-    <div id="share-nav">
-      <span>Share Cool Map</span>
-      <img src="assets/close-button.svg" id="close-share">
-    </div>
-    <input value="https://coollink.com/haha" id="share-url" readonly="readonly">
-    <div id="share-copy">Copy link</div>
-  </div>
   <div id="popup">
-    <div class="header-text">Welcome to Mapus!</div>
-    <div class="subheader-text">To get started, click below to sign in with Google.</div>
-    <div id="google-signin"><img src="assets/google-logo.svg"> Sign in with Google</div>
+    <div class="header-text">Bienvenido</div>
+    <div class="subheader-text">Para comenzar, inicie sesion en google.</div>
+    <div id="google-signin"><img src="assets/google-logo.svg"> Iniciar sesion en Google</div>
   </div>
-  <div id="overlay"></div>
-  <div id="more-menu">
-    <div class="more-item" id="logout">Cerrar Sesion</div>
+    
   </div>
-  <div id="sidebar">
-    <div id="map-details" class="section">
-      <input id="map-name" value="EstudianTI" disabled>
-      <input id="map-description" value="">
-      <div id="more-vertical">
-        <img src="assets/more-vertical.svg">
-      </div>
-    </div>
+  <div id="mySidebar" class="sidebar">
+  <a href="javascript:void(0)" class="closebtn" onclick="hide()">×</a>
+<center><h1>Estudianti</h1></center>
     <div class="section">
       <div class="section-name">Buscar</div>
       <table>
         <tr>
-          <th class="find-nearby" data-type="fashion" data-color="#A564D2" data-others="beauty,art,bicycle,books,carpet,clothes,computer,cosmetics,department_store,electronics,fashion,florist,furniture,garden_centre,general,gift,hardware,jewelry,kiosk,mall,music,shoes,shopping_centre,sports,stationery,toys">
+          <th class="find-nearby" data-type="fashion" data-color="#29D741" data-others="beauty,art,bicycle,books,carpet,clothes,computer,cosmetics,department_store,electronics,fashion,florist,furniture,garden_centre,general,gift,hardware,jewelry,kiosk,mall,music,shoes,shopping_centre,sports,stationery,toys">
             <img src="assets/shopping-button.svg"><br>
             Utiles
           </th>
-          <th class="find-nearby" data-type="restaurant" data-color="#4890E8" data-others="bar,fast-food,seafood,food,organic,deli,confectionery,bakery">
+          <th class="find-nearby" data-type="restaurant" data-color="#2516E2" data-others="bar,fast-food,seafood,food,organic,deli,confectionery,bakery">
             <img src="assets/food-button.svg"><br>
             Sodexo
           </th>
-          <th class="find-nearby" data-type="station" data-color="#718390">
+          <th class="find-nearby" data-type="station" data-color="#E90000">
             <img src="assets/transport-button.svg"><br>
             Paradas
           </th>
@@ -61,10 +113,20 @@
       <div id="annotations-list">
       </div>
     </div>
-    <div class="section" id="attribution-section">
-      <div id="attribution">© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors</div>
-    </div>
+	<div class="more-item" id="logout">Cerrar Sesion</div>
   </div>
+  <button class="openbtn" id="openbtn" onclick="show()">☰</button>
+  <script>
+   function show() {
+      document.getElementById("mySidebar").style.width = "350px";
+      document.getElementById("content").style.marginLeft = "350px";
+   }
+
+   function hide() {
+      document.getElementById("mySidebar").style.width = "0";
+      document.getElementById("content").style.marginLeft = "0";
+   }
+   </script>
   <div id="search-box">
     <input id="search-input" placeholder="Buscar"/>
     <img src="assets/search-icon.svg" >
@@ -91,9 +153,6 @@
   <div id="zoom-controls" class="noselect">
     <div id="zoom-in"><img src="assets/zoomin.svg"></div>
     <div id="zoom-out"><img src="assets/zoomout.svg"></div>
-  </div>
-  <div id="outline">
-    <div id="observing-name"></div>
   </div>
   <div id="mapDiv"></div>
   <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-app.js"></script>
