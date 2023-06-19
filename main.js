@@ -298,8 +298,75 @@ map.locate({setView: true, maxZoom: 20});
     }
   }
 
+  // Save nearby location (share with other users, they all will see it)
+  function saveNearby() {
+    var user = checkAuth();
+    if (checkAuth() != false) {
+      var inst = places.find(x => x.place_id == $(this).attr("data-id"));
+      currentid = db.ref("rooms/"+room+"/objects").push().key;
+      var key = currentid;
+      inst.id = currentid;
+      db.ref("rooms/"+room+"/objects/"+currentid).set({
+        color: inst.color,
+        place_id: inst.place_id,
+        lat: inst.lat,
+        lng: inst.lng,
+        user: user.uid,
+        type: "marker",
+        m_type: inst.m_type,
+        session: session,
+        name: inst.name,
+        desc: ""
+      });
+      objects.push(inst);
 
+      // Create a popup with information about the place
+      inst.marker.bindTooltip('<h1>'+inst.name+'</h1><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><br><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
+    }
+  }
 
+  // Remove nearby location
+  function cancelNearby() {
+    var inst = places.find(x => x.place_id == $(this).attr("data-id"));
+    inst.marker.remove();
+    places = $.grep(places, function(e){
+         return e.place_id != inst.id;
+    });
+    place_ids = $.grep(place_ids, function(e){
+         return e != inst.id;
+    });
+  }
+
+  // Enable observation mode
+  function observationMode() {
+    var user = checkAuth();
+    if (checkAuth() != false) {
+      var otheruser = $(this).attr("data-id");
+      if (otheruser != user.uid) {
+        if (observing.id == otheruser) {
+          // When clicking on the avatar of the current user you're observing, stop observing them
+          stopObserving();
+        } else {
+          // Start observing the selected user
+          observing.status = true;
+          observing.id = otheruser;
+
+          // Show that observation mode is enabled
+          $("#outline").css({"border": "6px solid "+cursors.find(x => x.id === otheruser).color});
+          $("#observing-name").html("Observing "+cursors.find(x => x.id === otheruser).name);
+          $("#observing-name").css({"background": cursors.find(x => x.id === otheruser).color});
+          $("#outline").addClass("observing");
+        }
+      }
+    }
+  }
+
+  // Disable observation mode
+  function stopObserving() {
+    observing.status = false;
+    $("#outline").css({"border": "none"});
+    $("#outline").removeClass("observing");
+  }
 
   // Save marker/line/area data
   function saveForm(e) {
@@ -493,6 +560,144 @@ map.locate({setView: true, maxZoom: 20});
     }
   });
 
+  // Stop drawing lines / polygons
+  map.on('pm:drawend', e => {
+    lineon = false;
+    followcursor.closeTooltip();
+    cursorTool();
+  });
+
+  // Add tooltip to lines and polygons
+  map.on('pm:create', e => {
+    var user = checkAuth();
+    if (checkAuth() != false) {
+      enteringdata = true;
+      var inst = objects.filter(function(result){return result.id === currentid && result.user === user.uid;})[0];
+
+      // Calculate total distance / perimeter
+      inst.distance = parseFloat(turf.length(e.layer.toGeoJSON()).toFixed(2));
+      inst.layer = e.layer;
+      if (inst.type == "area") {
+        // Calculate area
+        inst.area = parseFloat((turf.area(e.layer.toGeoJSON())*0.000001).toFixed(2));
+
+        // Save all the area coordinates
+        var temppath = [];
+        Object.values(e.layer.getLatLngs()[0]).forEach(function(a){
+          temppath.push([Object.values(a)[0], Object.values(a)[1]]);
+        })
+
+        // Update the data in the database
+        db.ref("rooms/"+room+"/objects/"+currentid).update({
+          path:temppath,
+          area:inst.area
+        })
+      } else if (inst.type == "line") {
+        // Save all the line coordinates
+        var temppath = [];
+        Object.values(e.layer.getLatLngs()).forEach(function(a){
+          temppath.push([Object.values(a)[0], Object.values(a)[1]]);
+        })
+
+        // Update the data in the database
+        db.ref("rooms/"+room+"/objects/"+currentid).update({
+          path:temppath
+        })
+      }
+
+      // Create a marker so it can trigger a popup when clicking on a line, or area
+      var centermarker = L.marker(e.layer.getBounds().getCenter(), {zIndexOffset:9999, interactive:false, pane:"overlayPane"});
+
+      // Create a popup so users can name and give a description to the shape
+      centermarker.bindTooltip('<label for="shape-name">Nombre</label><input value="'+inst.name+'" id="shape-name" name="shape-name" /><label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:true, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: -15, y: 18})});
+
+      // The marker is supposed to be hidden, it's just for placing the tooltip on the map and triggering it
+      centermarker.setOpacity(0);
+      centermarker.addTo(map);
+      centermarker.openTooltip();
+
+      // Automatically select the name so it's faster to edit
+      $("#shape-name").focus();
+      $("#shape-name").select();
+
+      inst.trigger = centermarker;
+
+      // Detect when clicking on the shape
+      e.layer.on("click", function(e){
+        if (!erasing) {
+          // Set the popup to the mouse coordinates and open it
+          centermarker.setLatLng(cursorcoords);
+          centermarker.openTooltip();
+        } else {
+          // If erasing, delete the shape
+          inst.trigger.remove();
+          e.layer.remove();
+          db.ref("rooms/"+room+"/objects/"+inst.id).remove();
+          objects = $.grep(objects, function(e){
+               return e.id != inst.id;
+          });
+          $(".annotation-item[data-id='"+inst.id+"']").remove();
+        }
+      });
+
+      // Detect when closing the popup (e.g. when clicking outside of it)
+      centermarker.on('tooltipclose', function(e){
+        if (enteringdata) {
+          // If closing the popup before a name and description has been set, revert to defaults
+          cancelForm();
+        }
+
+        // De-select the object from the sidebar list
+        $(".annotation-item[data-id="+inst.id+"]").find(".annotation-name span").removeClass("annotation-focus");
+      });
+    }
+  });
+
+  // Start free drawing
+  function startDrawing(lat,lng,user) {
+    var line = L.polyline([[lat,lng]], {color: color});
+
+    // Create a new key for the line object, and set initial data in the database
+    currentid = db.ref("rooms/"+room+"/objects").push().key;
+    db.ref("rooms/"+room+"/objects/"+currentid).set({
+      color: color,
+      initlat: lat,
+      initlng: lng,
+      user: user.uid,
+      type: "draw",
+      session: session,
+      completed: true
+    });
+    db.ref("rooms/"+room+"/objects/"+currentid+"/coords/").push({
+      set:[lat,lng]
+    })
+
+    // Save an object with all the defaults
+    objects.push({id:currentid, user:user.uid, line:line, session:session, local:true, completed:true, type:"draw"});
+    line.addTo(map);
+
+    // Event handling for lines
+    objects.forEach(function(inst){
+      inst.line.on("click", function(event){
+        if (erasing) {
+          inst.line.remove();
+          db.ref("rooms/"+room+"/objects/"+inst.id).remove();
+          objects = $.grep(objects, function(e){
+               return e.id != inst.id;
+          });
+          $(".annotation-item[data-id='"+inst.id+"']").remove();
+        }
+      });
+      inst.line.on("mouseover", function(event){
+        if (erasing) {
+          inst.line.setStyle({opacity: .3});
+        }
+      });
+      inst.line.on("mouseout", function(event){
+        inst.line.setStyle({opacity: 1});
+      });
+    });
+  }
 
   // Create a new marker
   function createMarker(lat, lng, user) {
