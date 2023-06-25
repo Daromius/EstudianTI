@@ -716,7 +716,7 @@ map.locate({setView: true, maxZoom: 20});
       var marker = L.marker([lat, lng], {icon:marker_icon, direction:"top", interactive:true, pane:"overlayPane"});
 
       // Create a popup to set the name and description of the marker
-      marker.bindTooltip('<label for="shape-name">Nombre</label><input value="Marker" id="shape-name" name="shape-name" /><label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: 0, y: -35})});
+      marker.bindTooltip('<label for="shape-name">Nombre</label><input value="Marker" id="shape-name" name="shape-name" /><label for="shape-tipo">Tipo</label><select for="shape-tipo"><option>Utiles</option><option>Sodexo</option><option>Paradero</option></select> <label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: 0, y: -35})});
       marker.addTo(map);
       marker.openTooltip();
 
@@ -732,9 +732,10 @@ map.locate({setView: true, maxZoom: 20});
         m_type: "none",
         session: session,
         name: "Marker",
+        tipo: "",
         desc: ""
       });
-      objects.push({id:currentid, user:user.uid, color:color, name:"Marker", m_type:"none",  desc:"", lat:lat, lng:lng, marker:marker, trigger:marker, session:session, completed:true, type:"marker"});
+      objects.push({id:currentid, user:user.uid, color:color, name:"Marker", m_type:"none", tipo:"",  desc:"", lat:lat, lng:lng, marker:marker, trigger:marker, session:session, completed:true, type:"marker"});
 
       // Detect when the tooltip is closed
       marker.on('tooltipclose', function(e){
