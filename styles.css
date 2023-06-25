@@ -188,7 +188,7 @@ body {
 /* Main styles for sidebar */
 .section {
   border-bottom: 1px solid #E8E8E8;
-  width: calc(100% - 18px;);
+  width: calc(100% - 18px);
   padding: 18px;
 }
 .section-name {

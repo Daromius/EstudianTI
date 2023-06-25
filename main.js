@@ -321,7 +321,7 @@ map.locate({setView: true, maxZoom: 20});
       objects.push(inst);
 
       // Create a popup with information about the place
-      inst.marker.bindTooltip('<h1>'+inst.name+'</h1><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><br><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
+      inst.marker.bindTooltip('<h1>'+inst.name+'</h1><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><br><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
     }
   }
 
@@ -380,6 +380,7 @@ map.locate({setView: true, maxZoom: 20});
       // Get input values for the name and description and sanitize them
       inst.name = sanitize($("#shape-name").val());
       inst.desc = sanitize($("#shape-desc").val());
+      inst.tipo = sanitize($("#shape-tipo").val());
       inst.completed = true;
 
       // Remove existing popup (for inputting data)
@@ -394,21 +395,13 @@ map.locate({setView: true, maxZoom: 20});
           desc: inst.desc,
           completed: true
         })
-      } else if (inst.type == "line") {
-        // Create a popup showing info about the line
-        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/distance-icon.svg">'+inst.distance+' km</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: -15, y: 18})});
-        db.ref("rooms/"+room+"/objects/"+currentid).update({
-          distance: inst.distance,
-          name: inst.name,
-          desc: inst.desc,
-          completed: true
-        })
       } else if (inst.type == "marker") {
         // Create a popup showing info about the marker
-        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
+        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
         db.ref("rooms/"+room+"/objects/"+currentid).update({
           name: inst.name,
           desc: inst.desc,
+          tipo: inst.tipo,
           completed: true
         })
       }
@@ -446,21 +439,13 @@ map.locate({setView: true, maxZoom: 20});
           desc: inst.desc,
           completed: true
         })
-      } else if (inst.type == "line") {
-        // Create a popup showing info about the line
-        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/distance-icon.svg">'+inst.distance+' km</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: -15, y: 18})});
-        db.ref("rooms/"+room+"/objects/"+currentid).update({
-          distance: inst.distance,
-          name: inst.name,
-          desc: inst.desc,
-          completed: true
-        })
       } else if (inst.type == "marker") {
         // Create a popup showing info about the marker
-        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
+        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
         db.ref("rooms/"+room+"/objects/"+currentid).update({
           name: inst.name,
           desc: inst.desc,
+          tipo: inst.tipo,
           completed: true
         })
       }
@@ -716,7 +701,7 @@ map.locate({setView: true, maxZoom: 20});
       var marker = L.marker([lat, lng], {icon:marker_icon, direction:"top", interactive:true, pane:"overlayPane"});
 
       // Create a popup to set the name and description of the marker
-      marker.bindTooltip('<label for="shape-name">Nombre</label><input value="Marcador" id="shape-name" name="shape-name" /><label for="shape-tipo">Tipo</label><select id="shape-tipo" name="tipom"><option>Utiles</option><option>Sodexo</option><option>Paradero</option></select><label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: 0, y: -35})});
+      marker.bindTooltip('<label for="shape-name">Nombre</label><input value="Marcador" id="shape-name" name="shape-name" /><label for="shape-type">Tipo</label><select id="shape-tipo" name="shape-tipo" /><option>Utiles</option><option>Sodexo</option><option>Paradero</option></select> <label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: 0, y: -35})});
       marker.addTo(map);
       marker.openTooltip();
 
@@ -732,10 +717,10 @@ map.locate({setView: true, maxZoom: 20});
         m_type: "none",
         session: session,
         name: "Marker",
-        tipo: "",
-        desc: ""
+        desc: "",
+        tipo: ""
       });
-      objects.push({id:currentid, user:user.uid, color:color, name:"Marker", m_type:"none", tipo:"",  desc:"", lat:lat, lng:lng, marker:marker, trigger:marker, session:session, completed:true, type:"marker"});
+      objects.push({id:currentid, user:user.uid, color:color, name:"Marker", m_type:"none",  desc:"", tipo:"", lat:lat, lng:lng, marker:marker, trigger:marker, session:session, completed:true, type:"marker"});
 
       // Detect when the tooltip is closed
       marker.on('tooltipclose', function(e){
@@ -1409,12 +1394,12 @@ map.locate({setView: true, maxZoom: 20});
           var marker = L.marker([snapshot.lat, snapshot.lng], {icon:marker_icon, interactive:true, direction:"top", pane:"overlayPane"});
 
           // Create the popup that shows data about the marker
-          marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.lat.toFixed(5)+', '+snapshot.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
+          marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+snapshot.lat.toFixed(5)+', '+snapshot.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
           marker.addTo(map);
           marker.openTooltip();
 
           // Save the marker locally
-          objects.push({id:key, user:snapshot.user, marker:marker, color:snapshot.color, name:snapshot.name, desc:snapshot.desc, session:snapshot.session, local:false, lat:snapshot.lat, lng:snapshot.lng, completed:true, type:"marker"});
+          objects.push({id:key, user:snapshot.user, marker:marker, color:snapshot.color, name:snapshot.name, desc:snapshot.desc, tipo:snapshot.tipo, session:snapshot.session, local:false, lat:snapshot.lat, lng:snapshot.lng, completed:true, type:"marker"});
 
           // Detect when clicking on the marker
           marker.on("click", function(e){
@@ -1497,14 +1482,7 @@ map.locate({setView: true, maxZoom: 20});
     var user = checkAuth();
     if (checkAuth() != false) {
 
-      // Get name and description of map on startup
-      db.ref("rooms/"+room+"/details").once('value', (snapshot) => {
-        mapname = snapshot.val().name;
-        mapdescription = snapshot.val().description;
-        $("#map-name").val(mapname);
-        $("#map-description").val(mapdescription);
-        $("#share-nav span").html("Share "+mapname);
-      });
+      
 
       // Check current users on startup
       db.ref("rooms/"+room+"/users/").once('value', (snapshot) => {
@@ -1524,13 +1502,7 @@ map.locate({setView: true, maxZoom: 20});
         }
       });
 
-      // Update name and description when a change is detected
-      db.ref("rooms/"+room+"/details").on('value', (snapshot) => {
-        mapname = snapshot.val().name;
-        mapdescription = snapshot.val().description;
-        $("#map-name").val(mapname);
-        $("#map-description").val(mapdescription);
-      });
+
 
       // Detect when a user joins the room
       db.ref("rooms/"+room+"/users/").on('child_added', (snapshot) => {
