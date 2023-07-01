@@ -29,16 +29,16 @@ $(document).ready(function(){
   var mousedown = false;
   var objects = [];
   var currentid = 0;
-  var color = "#634FF1";
+  var color = "";
   var cursors = [];
   var userlocation = "";
   var places = [];
   var place_ids = [];
   var room = "";
 
-  // Available cursor colors
-  var colors = ["#EC1D43", "#EC811D", "#ECBE1D", "#B6EC1D", "#1DA2EC", "#781DEC", "#CF1DEC", "#222222"];
 
+
+  var colors = ["#EC1D43", "#EC811D", "#ECBE1D", "#B6EC1D", "#1DA2EC", "#781DEC", "#CF1DEC", "#222222"];
   // Get URL params
   var params = new URLSearchParams(window.location.search);
 
@@ -104,6 +104,19 @@ map.locate({setView: true, maxZoom: 20});
     }
   }
 
+
+
+
+  L.Routing.control({
+    waypoints: [
+        L.latLng(-36.74278988091517, -72.46792798748825),
+        L.latLng(-36.5958916855084, -72.10497030963045)
+    ],
+    language: 'es', // here's the magic
+    routeWhileDragging: true
+}).addTo(map);
+
+  
   function targetLiveLocation() {
     stopObserving();
 
@@ -321,9 +334,12 @@ map.locate({setView: true, maxZoom: 20});
       objects.push(inst);
 
       // Create a popup with information about the place
-      inst.marker.bindTooltip('<h1>'+inst.name+'</h1><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><br><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
+      inst.marker.bindTooltip('<h1>'+inst.name+'</h1><div class="shape-data"><h3><button type="button">Click Me!</button>'+inst.tipo+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><br><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
     }
   }
+
+
+
 
   // Remove nearby location
   function cancelNearby() {
@@ -383,6 +399,9 @@ map.locate({setView: true, maxZoom: 20});
       inst.tipo = sanitize($("#shape-tipo").val());
       inst.completed = true;
 
+
+      
+
       // Remove existing popup (for inputting data)
       inst.trigger.unbindTooltip();
       if (inst.type == "area") {
@@ -416,6 +435,16 @@ map.locate({setView: true, maxZoom: 20});
       }, 200)
     }
   }
+
+
+  function createButton(label, container) {
+    var btn = L.DomUtil.create('button', '', container);
+    btn.setAttribute('type', 'button');
+    btn.innerHTML = label;
+    return btn;
+}
+
+
 
   // Don't save marker/line/area data (doesn't delete them, just reverts to defaults)
   function cancelForm() {
@@ -684,6 +713,19 @@ map.locate({setView: true, maxZoom: 20});
     });
   }
 
+
+  function colormark() {
+        if (document.getElementById("shape-tipo").value == 'Utiles'){
+        color = "#52c441" }
+        else if (document.getElementById("shape-tipo").value == 'Sodexo'){
+          color = "#1945e3" }
+          else if (document.getElementById("shape-tipo").value == 'Paradero'){
+            color = "#db1832" }
+            }    
+      
+
+
+      
   // Create a new marker
   function createMarker(lat, lng, user) {
     if (markerson) {
@@ -692,7 +734,7 @@ map.locate({setView: true, maxZoom: 20});
 
       // Set custom marker icon
       var marker_icon = L.divIcon({
-        html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="'+color+'"/>/svg>',
+        html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="'+"#EFEFEF"+'"/>/svg>',
         iconSize:     [30, 30], // size of the icon
         iconAnchor:   [15, 30], // point of the icon which will correspond to marker's location
         shadowAnchor: [4, 62],  // the same for the shadow
@@ -701,27 +743,31 @@ map.locate({setView: true, maxZoom: 20});
       var marker = L.marker([lat, lng], {icon:marker_icon, direction:"top", interactive:true, pane:"overlayPane"});
 
       // Create a popup to set the name and description of the marker
-      marker.bindTooltip('<label for="shape-name">Nombre</label><input value="Marcador" id="shape-name" name="shape-name" /><label for="shape-type">Tipo</label><select id="shape-tipo" name="shape-tipo" /><option>Utiles</option><option>Sodexo</option><option>Paradero</option></select> <label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: 0, y: -35})});
+      marker.bindTooltip('<label for="shape-name">Nombre</label><input value="Marcador" id="shape-name" name="shape-name" /><label for="shape-type">Tipo</label><select id="shape-tipo" name="shape-tipo" class="markcolor"><option>Seleccione un tipo</option><option value="Utiles">Utiles</option><option value ="Sodexo">Sodexo</option><option value ="Paradero">Paradero</option></select><label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: 0, y: -35})});
       marker.addTo(map);
       marker.openTooltip();
 
-      // Create a new key for the marker, and add it to the database
-      currentid = db.ref("rooms/"+room+"/objects").push().key;
-      var key = currentid;
-      db.ref("rooms/"+room+"/objects/"+currentid).set({
-        color: color,
-        lat: lat,
-        lng: lng,
-        user: user.uid,
-        type: "marker",
-        m_type: "none",
-        session: session,
-        name: "Marker",
-        desc: "",
-        tipo: ""
-      });
-      objects.push({id:currentid, user:user.uid, color:color, name:"Marker", m_type:"none",  desc:"", tipo:"", lat:lat, lng:lng, marker:marker, trigger:marker, session:session, completed:true, type:"marker"});
 
+  currentid = db.ref("rooms/"+room+"/objects").push().key;
+          var key = currentid;
+          db.ref("rooms/"+room+"/objects/"+currentid).set({
+            tipo: "",
+            color: color,
+            lat: lat,
+            lng: lng,
+            user: user.uid,
+            type: "marker",
+            m_type: "none",
+            session: session,
+            name: "Marker",
+            desc: ""
+            
+          })
+ 
+        
+      
+      objects.push({id:currentid, user:user.uid, tipo:"", color:color, name:"Marker", m_type:"none",  desc:"", tipo:"", lat:lat, lng:lng, marker:marker, trigger:marker, session:session, completed:true, type:"marker"});
+        
       // Detect when the tooltip is closed
       marker.on('tooltipclose', function(e){
         if (enteringdata) {
@@ -867,7 +913,6 @@ map.locate({setView: true, maxZoom: 20});
         if (params.has('file')) {
           $(".signin").removeClass("signin")
           var user = result.user;
-          var usercolor = colors[Math.floor(Math.random()*colors.length)];
 
           // Get user data
           user.providerData.forEach(profile => {
@@ -876,7 +921,6 @@ map.locate({setView: true, maxZoom: 20});
                 lat:0,
                 lng:0,
                 active: true,
-                color: usercolor,
                 session: firebase.database.ServerValue.increment(1),
                 name: user.displayName,
                 imgsrc: profile.photoURL,
@@ -1394,7 +1438,7 @@ map.locate({setView: true, maxZoom: 20});
           var marker = L.marker([snapshot.lat, snapshot.lng], {icon:marker_icon, interactive:true, direction:"top", pane:"overlayPane"});
 
           // Create the popup that shows data about the marker
-          marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+snapshot.lat.toFixed(5)+', '+snapshot.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
+          marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+ '<button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
           marker.addTo(map);
           marker.openTooltip();
 
@@ -1477,6 +1521,8 @@ map.locate({setView: true, maxZoom: 20});
     }
   }
 
+
+  
   // Interact with the database
   function checkData() {
     var user = checkAuth();
@@ -1557,35 +1603,10 @@ map.locate({setView: true, maxZoom: 20});
     }
   }
 
-  // Keyboard shortcuts & more
-  $(document).keyup(function(e) {
-    if ($(e.target).is("input") || $(e.target).is("textarea")) {
-      return;
-    }
-    if (e.key === "Escape") {
-      normalMode();
-    } else if (e.key === "Enter") {
-      if (editingname) {
-        stopEditingMapName();
-      } else if (editingdescription) {
-        stopEditingMapDescription();
-      }
-    } else if (e.which == 86) {
-      cursorTool();
-    } else if (e.which == 80) {
-      penTool();
-    } else if (e.which == 69) {
-      eraserTool();
-    } else if (e.which == 77) {
-      markerTool();
-    } else if (e.which == 76) {
-      pathTool();
-    } else if (e.which == 65) {
-      areaTool();
-    }
-  });
+  
 
   // Event handlers
+
   $(document).on("click", handleGlobalClicks);
   $(document).on("click", "#pen-tool", penTool);
   $(document).on("click", "#cursor-tool", cursorTool);
@@ -1598,7 +1619,9 @@ map.locate({setView: true, maxZoom: 20});
   $(document).on("mouseover", ".tool", showTooltip);
   $(document).on("mouseout", ".tool", hideTooltip);
   $(document).on("click", ".save-button", saveForm);
+  $(document).on("change", ".markcolor", colormark);
   $(document).on("click", ".cancel-button", cancelForm);
+  $(document).on("click", ".route-button", createButton);
   $(document).on("click", ".avatars", observationMode);
   $(document).on("click", ".annotation-arrow", toggleLayer);
   $(document).on("click", ".annotation-item", focusLayer);
