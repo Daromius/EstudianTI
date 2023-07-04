@@ -29,7 +29,7 @@ $(document).ready(function(){
   var mousedown = false;
   var objects = [];
   var currentid = 0;
-  var color = "";
+  var color = "#EAEAEA";
   var cursors = [];
   var userlocation = "";
   var places = [];
@@ -55,7 +55,7 @@ $(document).ready(function(){
     } else {
       if (checkAuth() && !params.has('file')) {
         // Prompt the user to create a map
-        window.location.replace(window.location.href+"?file=-NXiOOY1Ch3qbmTvFBRc");
+        window.location.replace(window.location.href+"?file=mapa");
       }
       // Show popup & overlay
       $("#overlay").addClass("signin");
@@ -81,12 +81,6 @@ map.locate({setView: true, maxZoom: 20});
     $("img[src='https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png']").remove();
   }
 
-  // Hints for drawing lines or polygons
-  var followcursor = L.marker([0, 0], {pane: "overlayPane", interactive:false}).addTo(map);
-  followcursor.setOpacity(0);
-  var tooltip = followcursor.bindTooltip("", { permanent: true, offset:[5,25], sticky: true, className: "hints", direction:"right"}).addTo(map);
-  followcursor.closeTooltip();
-
   // Show live location
   function liveLocation() {
     if (navigator.geolocation) {
@@ -105,18 +99,21 @@ map.locate({setView: true, maxZoom: 20});
   }
 
 
-
-
+  function rutamark(snapshot){
   L.Routing.control({
     waypoints: [
-        L.latLng(-36.74278988091517, -72.46792798748825),
-        L.latLng(-36.5958916855084, -72.10497030963045)
+      L.latLng(userlocation.getLatLng()),
+        L.latLng(-36.5958916855084, -72.10497030963045  )
     ],
     language: 'es', // here's the magic
-    routeWhileDragging: true
+    draggableWaypoints: false,
+    addWaypoints: false,
+    createMarker: function() { return null; }
 }).addTo(map);
-
+  }
   
+
+
   function targetLiveLocation() {
     stopObserving();
 
@@ -169,25 +166,8 @@ map.locate({setView: true, maxZoom: 20});
     $("#cursor-tool").addClass("tool-active");
   }
 
-  // Enable pen tool
-  function penTool() {
-    resetTools();
-    drawing = false;
-    map.dragging.disable();
-    $(".tool-active").removeClass("tool-active");
-    $("#pen-tool").addClass("tool-active");
-    showAnnotations();
-  }
 
-  // Enable eraser tool
-  function eraserTool() {
-    resetTools();
-    erasing = false;
-    $(".tool-active").removeClass("tool-active");
-    $("#eraser-tool").addClass("tool-active");
-    map.pm.enableGlobalRemovalMode();
-    showAnnotations();
-  }
+
 
   // Enable marker tool
   function markerTool() {
@@ -198,28 +178,8 @@ map.locate({setView: true, maxZoom: 20});
     showAnnotations();
   }
 
-  // Enable area tool
-  function areaTool() {
-    resetTools();
-    $(".tool-active").removeClass("tool-active");
-    $("#area-tool").addClass("tool-active");
 
-    // Start creating an area
-    map.pm.setGlobalOptions({ pinning: true, snappable: true });
-    map.pm.setPathOptions({
-      color: color,
-      fillColor: color,
-      fillOpacity: 0.4,
-    });
-    map.pm.enableDraw('Polygon', {
-      tooltips: false,
-      snappable: true,
-      templineStyle: {color: color},
-      hintlineStyle: {color: color, dashArray: [5, 5]},
-      pmIgnore: false
-    });
-    showAnnotations();
-  }
+  
 
   // Enable line tool
   function pathTool() {
@@ -245,19 +205,7 @@ map.locate({setView: true, maxZoom: 20});
     showAnnotations();
   }
 
-  // Show/hide color picker
-  function toggleColor() {
-    $("#color-list").toggleClass("color-enabled");
-  }
-
-  // Switch color (color picker)
-  function switchColor(e) {
-    e.stopPropagation();
-    color = $(this).attr("data-color");
-    $("#inner-color").css({background:color});
-    toggleColor();
-  }
-
+ 
   // Sanitizing input strings
   function sanitize(string) {
     const map = {
@@ -334,7 +282,7 @@ map.locate({setView: true, maxZoom: 20});
       objects.push(inst);
 
       // Create a popup with information about the place
-      inst.marker.bindTooltip('<h1>'+inst.name+'</h1><div class="shape-data"><h3><button type="button">Click Me!</button>'+inst.tipo+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><br><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
+      inst.marker.bindTooltip('<h1>'+inst.name+inst.tipo+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><br><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
     }
   }
 
@@ -398,25 +346,15 @@ map.locate({setView: true, maxZoom: 20});
       inst.desc = sanitize($("#shape-desc").val());
       inst.tipo = sanitize($("#shape-tipo").val());
       inst.completed = true;
-
+   
 
       
 
       // Remove existing popup (for inputting data)
       inst.trigger.unbindTooltip();
-      if (inst.type == "area") {
-        // Create a popup showing info about the area
-        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/area-icon.svg">'+inst.area+' km&sup2;</h3></div><div class="shape-data"><h3><img src="assets/perimeter-icon.svg">'+inst.distance+' km</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: -15, y: 18})});
-        db.ref("rooms/"+room+"/objects/"+currentid).update({
-          area:inst.area,
-          distance: inst.distance,
-          name: inst.name,
-          desc: inst.desc,
-          completed: true
-        })
-      } else if (inst.type == "marker") {
+      if (inst.type == "marker") {
         // Create a popup showing info about the marker
-        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
+        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+'<br><br>'+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
         db.ref("rooms/"+room+"/objects/"+currentid).update({
           name: inst.name,
           desc: inst.desc,
@@ -437,12 +375,6 @@ map.locate({setView: true, maxZoom: 20});
   }
 
 
-  function createButton(label, container) {
-    var btn = L.DomUtil.create('button', '', container);
-    btn.setAttribute('type', 'button');
-    btn.innerHTML = label;
-    return btn;
-}
 
 
 
@@ -458,19 +390,9 @@ map.locate({setView: true, maxZoom: 20});
       // Delete existing popup (for inputting data)
       inst.trigger.unbindTooltip();
       inst.completed = true;
-      if (inst.type == "area") {
-        // Create a popup showing info about the area
-        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/area-icon.svg">'+inst.area+' km&sup2;</h3></div><div class="shape-data"><h3><img src="assets/perimeter-icon.svg">'+inst.distance+' km</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: -15, y: 18})});
-        db.ref("rooms/"+room+"/objects/"+currentid).update({
-          area:inst.area,
-          distance: inst.distance,
-          name: inst.name,
-          desc: inst.desc,
-          completed: true
-        })
-      } else if (inst.type == "marker") {
+      if (inst.type == "marker") {
         // Create a popup showing info about the marker
-        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
+        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+'<br><br>'+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
         db.ref("rooms/"+room+"/objects/"+currentid).update({
           name: inst.name,
           desc: inst.desc,
@@ -715,6 +637,7 @@ map.locate({setView: true, maxZoom: 20});
 
 
   function colormark() {
+    console.log(document.getElementById("shape-tipo").value)
         if (document.getElementById("shape-tipo").value == 'Utiles'){
         color = "#52c441" }
         else if (document.getElementById("shape-tipo").value == 'Sodexo'){
@@ -725,16 +648,17 @@ map.locate({setView: true, maxZoom: 20});
       
 
 
-      
+            
+
+ 
   // Create a new marker
-  function createMarker(lat, lng, user) {
+  function createmarker1(lat, lng, user) {
     if (markerson) {
       // Go back to cursor tool after creating a marker
       cursorTool();
-
       // Set custom marker icon
       var marker_icon = L.divIcon({
-        html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="'+"#EFEFEF"+'"/>/svg>',
+        html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#080808"/>/svg>',
         iconSize:     [30, 30], // size of the icon
         iconAnchor:   [15, 30], // point of the icon which will correspond to marker's location
         shadowAnchor: [4, 62],  // the same for the shadow
@@ -746,13 +670,10 @@ map.locate({setView: true, maxZoom: 20});
       marker.bindTooltip('<label for="shape-name">Nombre</label><input value="Marcador" id="shape-name" name="shape-name" /><label for="shape-type">Tipo</label><select id="shape-tipo" name="shape-tipo" class="markcolor"><option>Seleccione un tipo</option><option value="Utiles">Utiles</option><option value ="Sodexo">Sodexo</option><option value ="Paradero">Paradero</option></select><label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: 0, y: -35})});
       marker.addTo(map);
       marker.openTooltip();
-
-
   currentid = db.ref("rooms/"+room+"/objects").push().key;
           var key = currentid;
           db.ref("rooms/"+room+"/objects/"+currentid).set({
             tipo: "",
-            color: color,
             lat: lat,
             lng: lng,
             user: user.uid,
@@ -766,7 +687,7 @@ map.locate({setView: true, maxZoom: 20});
  
         
       
-      objects.push({id:currentid, user:user.uid, tipo:"", color:color, name:"Marker", m_type:"none",  desc:"", tipo:"", lat:lat, lng:lng, marker:marker, trigger:marker, session:session, completed:true, type:"marker"});
+      objects.push({id:currentid, user:user.uid, tipo:"", name:"Marker", m_type:"none",  desc:"", tipo:"", lat:lat, lng:lng, marker:marker, trigger:marker, session:session, completed:true, type:"marker"});
         
       // Detect when the tooltip is closed
       marker.on('tooltipclose', function(e){
@@ -816,10 +737,10 @@ map.locate({setView: true, maxZoom: 20});
     if (checkAuth() != false) {
       // Get mouse coordinates and save them locally
       let lat = Math.round(event.latlng.lat * 100000) / 100000;
-      let lng = Math.round(event.latlng.lng * 100000) / 100000;
+      let lng = Math.round(event.latlng.lng * 100000)  / 100000;
       cursorcoords = [lat,lng];
       // Create a marker if the marker tool is enabled
-      createMarker(lat,lng,user);
+      createmarker1(lat,lng,user);
       if (drawing) {
         // If the pencil tool is enabled, start drawing
         startDrawing(lat,lng,user);
@@ -829,49 +750,7 @@ map.locate({setView: true, maxZoom: 20});
   map.addEventListener('mouseup', (event) => {
     mousedown = false;
   })
-  map.addEventListener('mousemove', (event) => {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      // Get cursor coordinates and save them locally
-      let lat = Math.round(event.latlng.lat * 100000) / 100000;
-      let lng = Math.round(event.latlng.lng * 100000) / 100000;
-      cursorcoords = [lat,lng];
 
-      // Make tooltip for line and area hints follow the cursor
-      followcursor.setLatLng([lat,lng]);
-      if (mousedown && drawing) {
-        // If the pencil tool is enabled, draw to the mouse coordinates
-        objects.filter(function(result){
-          return result.id === currentid && result.user === user.uid;
-        })[0].line.addLatLng([lat,lng]);
-
-        // Update drawn path in the database
-        db.ref("rooms/"+room+"/objects/"+currentid+"/coords/").push({
-          set:[lat,lng]
-        })
-      }
-
-      // If drawing a line, show the distance of drawn line in the tooltip
-      if (lineon) {
-        followcursor.setTooltipContent(((linedistance+linelastcoord.distanceTo([lat,lng]))/1000).toFixed(2)+"km | Double click to finish");
-      }
-      if (typeof lat != undefined && typeof lng != undefined) {
-        if (!dragging) {
-          // Save mouse coordinates in the database for real-time cursors, plus current view for observation mode
-          db.ref('rooms/'+room+'/users/'+user.uid).update({
-              lat:lat,
-              lng:lng,
-              view: [map.getBounds().getCenter().lat, map.getBounds().getCenter().lng]
-          });
-        } else {
-          // Save current view for observation mode
-          db.ref('rooms/'+room+'/users/'+user.uid).update({
-              view: [map.getBounds().getCenter().lat, map.getBounds().getCenter().lng]
-          });
-        }
-      }
-    }
-  });
   map.addEventListener('zoom', (event) => {
     var user = checkAuth();
     if (checkAuth() != false) {
@@ -940,7 +819,7 @@ map.locate({setView: true, maxZoom: 20});
           checkData();
         } else {
           // Prompt the user with a popup to create a map
-          window.location.replace(window.location.href+"?file=-NXiOOY1Ch3qbmTvFBRc");
+          window.location.replace(window.location.href+"?file=mapa");
         }
       });
     });
@@ -962,7 +841,7 @@ map.locate({setView: true, maxZoom: 20});
       db.ref("rooms/"+key+"/details").set({
         name: "Estudianti",
       });
-      window.location.replace(window.location.href+"?file=-NXiOOY1Ch3qbmTvFBRc");
+      window.location.replace(window.location.href+"?file=mapa");
     }
   }
 
@@ -1000,11 +879,7 @@ map.locate({setView: true, maxZoom: 20});
       $(this).find(".annotation-name span").addClass("annotation-focus");
 
       // Pan to the annotation and trigger the associated popup
-      if (inst.type == "line" || inst.type == "area") {
-        map.panTo(inst.trigger.getLatLng());
-        $(inst.trigger.getTooltip()._container).removeClass('tooltip-off');
-        inst.trigger.openTooltip();
-      } else if (inst.type == "marker") {
+      if (inst.type == "marker") {
         map.panTo(inst.marker.getLatLng());
         $(inst.marker.getTooltip()._container).removeClass('tooltip-off');
         inst.marker.openTooltip();
@@ -1017,28 +892,21 @@ map.locate({setView: true, maxZoom: 20});
     // Check that the object isn't already rendered in the list
     if ($(".annotation-item[data-id='"+object.id+"']").length == 0) {
       // Render the object in the list depending on the type (different data for each)
-      if (object.type == "line") {
-        const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="'+object.color+'"/><path d="M14.5 8.5L8.5 14.5" stroke="white" stroke-width="1.5" stroke-linecap="square"/><path d="M15.8108 8.53378C16.7176 8.53378 17.4527 7.79868 17.4527 6.89189C17.4527 5.9851 16.7176 5.25 15.8108 5.25C14.904 5.25 14.1689 5.9851 14.1689 6.89189C14.1689 7.79868 14.904 8.53378 15.8108 8.53378Z" stroke="white" stroke-width="1.5"/><circle cx="6.89189" cy="15.8108" r="1.64189" stroke="white" stroke-width="1.5"/></svg>'
-        $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/distance-icon.svg">'+object.distance+' km</div></div></div></div>');
-      } else if (object.type == "area") {
-        const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="'+object.color+'"/><path d="M15.3652 8.5V13.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M8.5 15.3649H13.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M14.5303 9.03033C14.8232 8.73744 14.8232 8.26256 14.5303 7.96967C14.2374 7.67678 13.7626 7.67678 13.4697 7.96967L14.5303 9.03033ZM7.96967 13.4697C7.67678 13.7626 7.67678 14.2374 7.96967 14.5303C8.26256 14.8232 8.73744 14.8232 9.03033 14.5303L7.96967 13.4697ZM13.4697 7.96967L7.96967 13.4697L9.03033 14.5303L14.5303 9.03033L13.4697 7.96967Z" fill="white"/><circle cx="15.365" cy="6.85135" r="1.60135" stroke="white" stroke-width="1.5"/><circle cx="15.365" cy="15.3649" r="1.60135" stroke="white" stroke-width="1.5"/><circle cx="6.85135" cy="15.3649" r="1.60135" stroke="white" stroke-width="1.5"/></svg>';
-        $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/area-icon.svg">'+object.area+' km&sup2;</div><div class="annotation-data-field"><img src="assets/perimeter-icon.svg">'+object.distance+' km</div></div></div></div>');
-      } else if (object.type == "marker") {
-        const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="'+object.color+'"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      if (object.tipo  == "Utiles") {
+        const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#52c441"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
+      }
+      else if (object.tipo == "Sodexo") {
+        const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#1945e3"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
+      } else if (object.tipo == "Paradero") {
+        const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#db1832"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
       }
     } else {
       // If the object already exists, update existing data
       const layer = $(".annotation-item[data-id='"+object.id+"']");
-      if (object.type == "line") {
-        layer.find(".annotation-name span").html(object.name);
-        layer.find(".annotation-description").html(object.desc);
-        layer.find(".annotation-data").html('<div class="annotation-data-field"><img src="assets/distance-icon.svg">'+object.distance+' km</div>');
-      } else if (object.type == "area") {
-        layer.find(".annotation-name span").html(object.name);
-        layer.find(".annotation-description").html(object.desc);
-        layer.find(".annotation-data").html('<div class="annotation-data-field"><img src="assets/area-icon.svg">'+object.area+' km&sup2;</div><div class="annotation-data-field"><img src="assets/perimeter-icon.svg">'+object.distance+' km</div>');
-      } else if (object.type == "marker") {
+      if (object.type == "marker") {
         layer.find(".annotation-name span").html(object.name);
         layer.find(".annotation-description").html(object.desc);
         layer.find(".annotation-data").html('<div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div>');
@@ -1224,65 +1092,7 @@ map.locate({setView: true, maxZoom: 20});
     a.click();
   }
 
-  // Render user cursors
-  function renderCursors(snapshot, key) {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      if (key != user.uid) {
-        if (snapshot.active) {
-          if (!cursors.find(x => x.id === key)) {
-            // Custom cursor icon
-            var cursor_icon = L.divIcon({
-              html: '<svg width="18" height="18" style="z-index:9999!important" viewBox="0 0 18 18" fill="none" style="background:none;" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.51169 15.8783L1.08855 3.64956C0.511984 2.05552 2.05554 0.511969 3.64957 1.08853L15.8783 5.51168C17.5843 6.12877 17.6534 8.51606 15.9858 9.23072L11.2573 11.2573L9.23074 15.9858C8.51607 17.6534 6.12878 17.5843 5.51169 15.8783Z" fill="'+snapshot.color+'"/></svg>',
-              iconSize:     [22, 22], // size of the icon
-              iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
-              shadowAnchor: [4, 62],  // the same for the shadow
-              popupAnchor:  [-3, -76], // point from which the popup should open relative to the iconAnchor
-              className: "cursoricon"
-            });
 
-            // Create a marker for the cursor
-            var cursor_instance = L.marker([snapshot.lat, snapshot.lng], {icon: cursor_icon, pane:"markerPane"});
-
-            // The "tooltip" is just the name of the user that's displayed in the cursor
-            cursor_instance.bindTooltip(snapshot.name, { permanent: true, offset: [14, 32], className: "cursor-label color"+snapshot.color.replace("#", ""), direction:"right"});
-            cursor_instance.addTo(map)
-            cursors.push({id:key, cursor:cursor_instance, color:snapshot.color, name:snapshot.name});
-
-            // Show user avatar on the top right. If they don't have a picture, just put the initial
-            var avatar = snapshot.imgsrc;
-            if (avatar == null) {
-              avatar = snapshot.name.charAt(0).toUpperCase();
-              $("#right-nav").prepend('<div id="profile" style="background:'+snapshot.color+'!important" class="avatars" data-id="'+key+'">'+avatar+'</div>');
-            } else {
-              $("#right-nav").prepend('<div id="profile" style="background:'+snapshot.color+'!important" class="avatars" data-id="'+key+'"><img src="'+avatar+'"></div>');
-            }
-          } else {
-            cursors.find(x => x.id === key).cursor.setLatLng([snapshot.lat, snapshot.lng]);
-            // Observation mode
-            if (observing.status == true && key == observing.id) {
-              map.setZoom(snapshot.zoom);
-              map.panTo(new L.LatLng(snapshot.view[0], snapshot.view[1]));
-            }
-          }
-        } else if (!snapshot.active && cursors.find(x => x.id === key)) {
-          // If the user has disconnected, stop observing them
-          if (observing.status == true && key == observing.id) {
-            stopObserving();
-          }
-
-          // Remove the avatar from the top right
-          $(".avatars[data-id="+key+"]").remove();
-
-          // Remove the cursor
-          cursors.find(x => x.id === key).cursor.remove();
-          cursors = $.grep(cursors, function(e){
-               return e.id != key;
-          });
-        }
-      }
-    }
-  }
 
   // Add tooltips for shapes
   function addShapeInfo(snapshot, key) {
@@ -1350,85 +1160,48 @@ map.locate({setView: true, maxZoom: 20});
         renderObjectLayer(inst);
       }
     }
+
+    
   }
+
+
+function render (snapshot, key){
+
+
+}
+
+
 
   // Render a new object
   function renderShape(snapshot, key) {
     var user = checkAuth();
     if (checkAuth() != false) {
-      if (snapshot.type == "draw" || snapshot.type == "line" || snapshot.type == "area") {
-        if (objects.filter(function(result){
-          return result.id === key && result.user === snapshot.user
-        }).length == 0) {
-          // If the shape doesn't exist locally, create it
-          var line = L.polyline([[snapshot.initlat, snapshot.initlng]], {color: snapshot.color});
-          if (snapshot.completed && (snapshot.type == "line" || snapshot.type == "area")) {
-            // If the shape is already finished, give it all its coordinates
-            line = L.polyline(snapshot.path, {color:snapshot.color});
-          }
-          line.addTo(map);
-
-          // Save shape locally
-          if (snapshot.type == "area") {
-              objects.push({id:key, local:false, user:snapshot.user, color: snapshot.color, line:line, name:snapshot.name, desc:snapshot.desc, distance:snapshot.distance, area:snapshot.area, path:snapshot.path, completed:snapshot.completed, type:snapshot.type, trigger:"", session:snapshot.session});
-          } else {
-              objects.push({id:key, local:false, user:snapshot.user, color: snapshot.color, line:line, name:snapshot.name, desc:snapshot.desc, distance:snapshot.distance, path:snapshot.path, completed:snapshot.completed, type:snapshot.type, trigger:"", session:snapshot.session});
-          }
-
-          // Detect when clicking on the shape (for freedrawing only)
-          line.on("click", function(e){
-            if (snapshot.completed && snapshot.type == "draw" && erasing) {
-              // If erasing, delete the line
-              line.remove();
-              db.ref("rooms/"+room+"/objects/"+key).remove();
-              objects = $.grep(objects, function(e){
-                   return e.id != key;
-              });
-            }
-          });
-
-          // Detect when hovering over a line
-          line.on("mouseover", function(event){
-            if (erasing && snapshot.type == "draw") {
-              line.setStyle({opacity: .3});
-            }
-          });
-
-          // Detect mouseout on a line
-          line.on("mouseout", function(event){
-            if (snapshot.type == "draw") {
-              line.setStyle({opacity: 1});
-            }
-          });
-        } else {
-          // If the object already exists (drawing in progress or already completed), update the coordinates of the object
-          var coords = [];
-          Object.values(snapshot.coords).forEach(function(coord){
-            coords.push([coord.set[0], coord.set[1]]);
-          });
-          objects.filter(function(result){
-            return result.id === key && result.user === snapshot.user
-          })[0].line.setLatLngs(coords);
-        }
-      } else if (snapshot.type == "marker") {
+       if (snapshot.type == "marker") {
         if (objects.filter(function(result){
           return result.id === key && result.user === snapshot.user
         }).length == 0) {
           // If the marker doesn't exist locally, create it
           var marker_icon;
-          if (snapshot.m_type == "none") {
+          if (snapshot.tipo == "Utiles") {
             // Set custom marker icon
             marker_icon = L.divIcon({
-              html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="'+snapshot.color+'"/>/svg>',
+              html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#52c441"/>/svg>',
               iconSize:     [30, 30], // size of the icon
               iconAnchor:   [15, 30], // point of the icon which will correspond to marker's location
               shadowAnchor: [4, 62],  // the same for the shadow
               popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
             });
+          } else if (snapshot.tipo =="Sodexo") {
+            marker_icon = L.divIcon({
+              html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#1945e3"/>/svg>',
+              iconSize:     [30, 30],
+              iconAnchor:   [15, 30],
+              shadowAnchor: [4, 62],
+              popupAnchor:  [-3, -76]
+            });
           } else {
-            // If the marker is of a place found using "find nearby", use a different icon
-            var marker_icon = L.icon({
-              iconUrl: 'assets/'+snapshot.m_type+'-marker.svg',
+            marker_icon = L.divIcon({
+              html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#db1832"/>/svg>',
               iconSize:     [30, 30],
               iconAnchor:   [15, 30],
               shadowAnchor: [4, 62],
@@ -1438,7 +1211,7 @@ map.locate({setView: true, maxZoom: 20});
           var marker = L.marker([snapshot.lat, snapshot.lng], {icon:marker_icon, interactive:true, direction:"top", pane:"overlayPane"});
 
           // Create the popup that shows data about the marker
-          marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+ '<button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
+          marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><br>'+snapshot.lat.toFixed(5)+', '+snapshot.lng.toFixed(5)+ '<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
           marker.addTo(map);
           marker.openTooltip();
 
@@ -1530,14 +1303,7 @@ map.locate({setView: true, maxZoom: 20});
 
       
 
-      // Check current users on startup
-      db.ref("rooms/"+room+"/users/").once('value', (snapshot) => {
-        if (snapshot.val() != null) {
-          Object.values(snapshot.val()).forEach(function(cursor, index){
-            renderCursors(cursor, Object.keys(snapshot.val())[index]);
-          })
-        }
-      });
+     
 
       // Check current objects on startup
       db.ref("rooms/"+room+"/objects").once('value', (snapshot) => {
@@ -1549,16 +1315,6 @@ map.locate({setView: true, maxZoom: 20});
       });
 
 
-
-      // Detect when a user joins the room
-      db.ref("rooms/"+room+"/users/").on('child_added', (snapshot) => {
-        renderCursors(snapshot.val(), snapshot.key);
-      });
-
-      // Detect when a user moves their cursor or interacts with the map
-      db.ref("rooms/"+room+"/users/").on('child_changed', (snapshot) => {
-        renderCursors(snapshot.val(), snapshot.key);
-      });
 
       // Detect when new objects are added or modified
       db.ref("rooms/"+room+"/objects").on('value', (snapshot) => {
@@ -1606,22 +1362,16 @@ map.locate({setView: true, maxZoom: 20});
   
 
   // Event handlers
-
+  $(document).on("click", ".route-button", rutamark);
   $(document).on("click", handleGlobalClicks);
-  $(document).on("click", "#pen-tool", penTool);
   $(document).on("click", "#cursor-tool", cursorTool);
-  $(document).on("click", "#eraser-tool", eraserTool);
   $(document).on("click", "#marker-tool", markerTool);
-  $(document).on("click", "#area-tool", areaTool);
   $(document).on("click", "#path-tool", pathTool);
-  $(document).on("click", ".color", switchColor);
-  $(document).on("click", "#inner-color", toggleColor);
   $(document).on("mouseover", ".tool", showTooltip);
   $(document).on("mouseout", ".tool", hideTooltip);
   $(document).on("click", ".save-button", saveForm);
   $(document).on("change", ".markcolor", colormark);
   $(document).on("click", ".cancel-button", cancelForm);
-  $(document).on("click", ".route-button", createButton);
   $(document).on("click", ".avatars", observationMode);
   $(document).on("click", ".annotation-arrow", toggleLayer);
   $(document).on("click", ".annotation-item", focusLayer);
