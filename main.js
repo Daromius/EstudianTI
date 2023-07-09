@@ -32,6 +32,8 @@ $(document).ready(function(){
   var color = "#EAEAEA";
   var cursors = [];
   var userlocation = "";
+  var lati = "";
+  var longi = "";
   var places = [];
   var place_ids = [];
   var room = "";
@@ -99,15 +101,18 @@ map.locate({setView: true, maxZoom: 20});
   }
 
 
-  function rutamark(snapshot){
+  function rutamark(){
+
+    console.log()
   L.Routing.control({
     waypoints: [
       L.latLng(userlocation.getLatLng()),
-        L.latLng(-36.5958916855084, -72.10497030963045  )
+        L.latLng(lati, longi)
     ],
     language: 'es', // here's the magic
     draggableWaypoints: false,
     addWaypoints: false,
+    fitSelectedRoutes: false,
     createMarker: function() { return null; }
 }).addTo(map);
   }
@@ -1211,15 +1216,20 @@ function render (snapshot, key){
           var marker = L.marker([snapshot.lat, snapshot.lng], {icon:marker_icon, interactive:true, direction:"top", pane:"overlayPane"});
 
           // Create the popup that shows data about the marker
+          
           marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><br>'+snapshot.lat.toFixed(5)+', '+snapshot.lng.toFixed(5)+ '<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
           marker.addTo(map);
           marker.openTooltip();
 
+          
           // Save the marker locally
           objects.push({id:key, user:snapshot.user, marker:marker, color:snapshot.color, name:snapshot.name, desc:snapshot.desc, tipo:snapshot.tipo, session:snapshot.session, local:false, lat:snapshot.lat, lng:snapshot.lng, completed:true, type:"marker"});
 
           // Detect when clicking on the marker
           marker.on("click", function(e){
+              lati = e.latlng.lat
+              longi = e.latlng.lng
+
             if (!erasing) {
               // Show the popup
               $(marker.getTooltip()._container).removeClass('tooltip-off');
