@@ -234,67 +234,6 @@ map.locate({setView: true, maxZoom: 20});
     })
   }
 
-  // Find nearby
-  function findNearby() {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      var locationtype = $(this).attr("data-type");
-      var markercolor = $(this).attr("data-color");
-      var coordinates = map.getBounds().getNorthWest().lng+','+map.getBounds().getNorthWest().lat+','+map.getBounds().getSouthEast().lng+','+map.getBounds().getSouthEast().lat;
-
-      // Call Nominatim API to get places nearby the current view, of the amenity that the user has selected
-      $.get('https://nominatim.openstreetmap.org/search?viewbox='+coordinates+'&format=geocodejson&limit=20&bounded=1&amenity='+locationtype+'&exclude_place_ids='+JSON.stringify(place_ids), function(data) {
-        // Custom marker icon depending on the amenity
-        var marker_icon = L.icon({
-          iconUrl: 'assets/'+locationtype+'-marker.svg',
-          iconSize:     [30, 30],
-          iconAnchor:   [15, 30],
-          shadowAnchor: [4, 62],
-          popupAnchor:  [-3, -76]
-        });
-        data.features.forEach(function(place){
-          // Create a marker for the place
-          var marker = L.marker([place.geometry.coordinates[1], place.geometry.coordinates[0]], {icon:marker_icon, pane:"overlayPane", interactive:true}).addTo(map);
-
-          // Create a popup with information about the place, and the options to save it or delete it (it's only local for now)
-          marker.bindTooltip('<h1>'+place.properties.geocoding.name+'</h1><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+place.geometry.coordinates[1].toFixed(5)+', '+place.geometry.coordinates[0].toFixed(5)+'</h3></div><br><div id="buttons2"><button class="cancel-button-place" data-id='+place.properties.geocoding.place_id+'>Remove</button><button class="save-button-place" data-id='+place.properties.geocoding.place_id+'>Save</button></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
-          places.push({id: "", place_id:place.properties.geocoding.place_id, user:user.uid, name:place.properties.geocoding.name, desc:"", lat:place.geometry.coordinates[1], lng:place.geometry.coordinates[0], trigger:marker, completed:true, marker:marker, m_type:locationtype, type:"marker", session:session, color:markercolor});
-          place_ids.push(place.properties.geocoding.place_id);
-        });
-      });
-    }
-  }
-
-  // Save nearby location (share with other users, they all will see it)
-  function saveNearby() {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      var inst = places.find(x => x.place_id == $(this).attr("data-id"));
-      currentid = db.ref("rooms/"+room+"/objects").push().key;
-      var key = currentid;
-      inst.id = currentid;
-      db.ref("rooms/"+room+"/objects/"+currentid).set({
-        color: inst.color,
-        place_id: inst.place_id,
-        lat: inst.lat,
-        lng: inst.lng,
-        user: user.uid,
-        type: "marker",
-        m_type: inst.m_type,
-        session: session,
-        name: inst.name,
-        desc: ""
-      });
-      objects.push(inst);
-
-      // Create a popup with information about the place
-      inst.marker.bindTooltip('<h1>'+inst.name+inst.tipo+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><br><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
-    }
-  }
-
-
-
-
   // Remove nearby location
   function cancelNearby() {
     var inst = places.find(x => x.place_id == $(this).attr("data-id"));
@@ -331,6 +270,14 @@ map.locate({setView: true, maxZoom: 20});
     }
   }
 
+function verify() {
+  db.ref("rooms/"+room+"/objects/"+currentid).update({
+    verif: "si",
+    completed: true
+  })
+
+}
+
   // Disable observation mode
   function stopObserving() {
     observing.status = false;
@@ -360,7 +307,7 @@ map.locate({setView: true, maxZoom: 20});
       inst.trigger.unbindTooltip();
       if (inst.type == "marker") {
         // Create a popup showing info about the marker
-        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+'<br><br>'+inst.lat.toFixed(5)+', '+inst.lng.toFixed(5)+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
+        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
         db.ref("rooms/"+room+"/objects/"+currentid).update({
           name: inst.name,
           desc: inst.desc,
@@ -907,7 +854,7 @@ map.locate({setView: true, maxZoom: 20});
           
             if (object.tipo  == "Utiles") {
               const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#52c441"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-              $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
+              $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
             }
             else if (object.tipo == "Sodexo") {
               const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#1945e3"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -1238,8 +1185,9 @@ map.locate({setView: true, maxZoom: 20});
           return result.id === key && result.user === snapshot.user
         }).length == 0) {
           // If the marker doesn't exist locally, create it
-          var marker_icon;
+          
           if (user.uid == "6imDRKIl9oc2qHxwvTirQrJC1yd2") {
+            var marker_icon;
             if (snapshot.verif == "si") {
               if (snapshot.tipo == "Utiles") {
                 // Set custom marker icon
@@ -1258,7 +1206,7 @@ map.locate({setView: true, maxZoom: 20});
                   shadowAnchor: [4, 62],
                   popupAnchor:  [-3, -76]
                 });
-              } else {
+              } else if (snapshot.tipo =="Paradero") {
                 marker_icon = L.divIcon({
                   html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#db1832"/>/svg>',
                   iconSize:     [30, 30],
@@ -1266,10 +1214,19 @@ map.locate({setView: true, maxZoom: 20});
                   shadowAnchor: [4, 62],
                   popupAnchor:  [-3, -76]
                 });
+              } else {
+                marker_icon = L.divIcon({
+                  html: '',
+                  iconSize:     [1, 1],
+                  iconAnchor:   [1, 1],
+                  shadowAnchor: [1, 1],
+                  popupAnchor:  [1, 1]
+                });
               }
   
               
-            } else {
+            } else if (snapshot.tipo == "Utiles") {
+              // Set custom marker icon
               marker_icon = L.divIcon({
                 html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#000000"/>/svg>',
                 iconSize:     [30, 30], // size of the icon
@@ -1277,32 +1234,76 @@ map.locate({setView: true, maxZoom: 20});
                 shadowAnchor: [4, 62],  // the same for the shadow
                 popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
               });
+            } else if (snapshot.tipo =="Sodexo") {
+              marker_icon = L.divIcon({
+                html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#000000"/>/svg>',
+                iconSize:     [30, 30],
+                iconAnchor:   [15, 30],
+                shadowAnchor: [4, 62],
+                popupAnchor:  [-3, -76]
+              });
+            } else if (snapshot.tipo =="Paradero") {
+              marker_icon = L.divIcon({
+                html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#000000"/>/svg>',
+                iconSize:     [30, 30],
+                iconAnchor:   [15, 30],
+                shadowAnchor: [4, 62],
+                popupAnchor:  [-3, -76]
+              });
+            } else {
+              marker_icon = L.divIcon({
+                html: '',
+                iconSize:     [1, 1],
+                iconAnchor:   [1, 1],
+                shadowAnchor: [1, 1],
+                popupAnchor:  [1, 1]
+              });
             }
           }
-          else if (snapshot.tipo == "Utiles") {
-            // Set custom marker icon
-            marker_icon = L.divIcon({
-              html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#52c441"/>/svg>',
-              iconSize:     [30, 30], // size of the icon
-              iconAnchor:   [15, 30], // point of the icon which will correspond to marker's location
-              shadowAnchor: [4, 62],  // the same for the shadow
-              popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
-            });
-          } else if (snapshot.tipo =="Sodexo") {
-            marker_icon = L.divIcon({
-              html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#1945e3"/>/svg>',
-              iconSize:     [30, 30],
-              iconAnchor:   [15, 30],
-              shadowAnchor: [4, 62],
-              popupAnchor:  [-3, -76]
-            });
+          else if (snapshot.verif == "si") {
+            if (snapshot.tipo == "Utiles") {
+              // Set custom marker icon
+              marker_icon = L.divIcon({
+                html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#52c441"/>/svg>',
+                iconSize:     [30, 30], // size of the icon
+                iconAnchor:   [15, 30], // point of the icon which will correspond to marker's location
+                shadowAnchor: [4, 62],  // the same for the shadow
+                popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+              });
+            } else if (snapshot.tipo =="Sodexo") {
+              marker_icon = L.divIcon({
+                html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#1945e3"/>/svg>',
+                iconSize:     [30, 30],
+                iconAnchor:   [15, 30],
+                shadowAnchor: [4, 62],
+                popupAnchor:  [-3, -76]
+              });
+            } else if (snapshot.tipo =="Paradero") {
+              marker_icon = L.divIcon({
+                html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#db1832"/>/svg>',
+                iconSize:     [30, 30],
+                iconAnchor:   [15, 30],
+                shadowAnchor: [4, 62],
+                popupAnchor:  [-3, -76]
+              });
+            } else {
+              marker_icon = L.divIcon({
+                html: '',
+                iconSize:     [1, 1],
+                iconAnchor:   [1, 1],
+                shadowAnchor: [1, 1],
+                popupAnchor:  [1, 1]
+              });
+            }
+
+            
           } else {
             marker_icon = L.divIcon({
-              html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#db1832"/>/svg>',
-              iconSize:     [30, 30],
-              iconAnchor:   [15, 30],
-              shadowAnchor: [4, 62],
-              popupAnchor:  [-3, -76]
+              html: '',
+              iconSize:     [1, 1], // size of the icon
+              iconAnchor:   [1, 1], // point of the icon which will correspond to marker's location
+              shadowAnchor: [1, 1],  // the same for the shadow
+              popupAnchor:  [1, 1] // point from which the popup should open relative to the iconAnchor
             });
           }
           
@@ -1311,7 +1312,7 @@ map.locate({setView: true, maxZoom: 20});
 
           // Create the popup that shows data about the marker
           
-          marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><br>'+snapshot.lat.toFixed(5)+', '+snapshot.lng.toFixed(5)+ '<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
+          marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
           marker.addTo(map);
           marker.openTooltip();
 
@@ -1480,6 +1481,7 @@ map.locate({setView: true, maxZoom: 20});
   $(document).on("click", ".annotation-arrow", toggleLayer);
   $(document).on("click", ".annotation-item", focusLayer);
   $(document).on("click", ".delete-layer", deleteLayer);
+  $(document).on("click", ".verify", verify);
   $(document).on("mousedown", "#map-name", editMapName);
   $(document).on("mouseup", "#map-name", focusMapName);
   $(document).on("focusout", "#map-name", stopEditingMapName);
@@ -1488,8 +1490,6 @@ map.locate({setView: true, maxZoom: 20});
   $(document).on("focusout", "#map-description", stopEditingMapDescription);
   $(document).on("click", "#hide-annotations", toggleAnnotations);
   $(document).on("click", "#location-control", targetLiveLocation);
-  $(document).on("click", ".find-nearby", findNearby);
-  $(document).on("click", ".save-button-place", saveNearby);
   $(document).on("click", ".cancel-button-place", cancelNearby);
   $(document).on("click", "#more-vertical", toggleMoreMenu);
   $(document).on("click", "#geojson", exportGeoJSON);

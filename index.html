@@ -24,7 +24,6 @@
       background-color: #ffffff;
       overflow-x: hidden;
       transition: 0.5s;
-      padding-top: 30px;
    }
 
    .sidebar a {
@@ -54,6 +53,8 @@
       color: black;
       padding: 10px 15px;
       border: none;
+      position: fixed;
+      z-index: 10;
    }
 
    .openbtn:hover {
@@ -84,6 +85,7 @@
   </div>
   <div id="mySidebar" class="sidebar">
   <a href="javascript:void(0)" class="closebtn" onclick="hide()">×</a>
+<br></br>
 <center><h1>Estudianti</h1></center>
     <div class="section">
       <div class="section-name">Buscar</div>
@@ -118,12 +120,10 @@
   <script>
    function show() {
       document.getElementById("mySidebar").style.width = "350px";
-      document.getElementById("content").style.marginLeft = "350px";
    }
 
    function hide() {
       document.getElementById("mySidebar").style.width = "0";
-      document.getElementById("content").style.marginLeft = "0";
    }
    </script>
   <div id="search-box">

@@ -317,6 +317,7 @@ th img {
   color: var(--text-grey);
   vertical-align: top;
   margin-top: -13px;
+  margin-right: 10px;
 }
 #hide-annotations:hover {
   cursor: pointer;
@@ -428,11 +429,11 @@ th img {
 /* Map */
 #mapDiv {
   position: absolute;
-  left: 45px;
   height: 100%;
   width: 100%;
   top: 0px;
   box-sizing: border-box;
+  z-index: 1;
 }
 
 /* Observation mode */
@@ -608,7 +609,7 @@ th img {
 }
 /* Tooltip */
 #tooltip {
-  background-color: #222222;
+  background-color: #000000;
   padding-left: 10px;
   padding-right: 10px;
   height: 30px;
@@ -851,7 +852,8 @@ div.firebase-emulator-warning {
   background-color: #FFF;
   box-shadow: 0px 2px 20px rgb(0 0 0 / 7%), 0px -1px 20px rgb(0 0 0 / 2%)!important;
   padding: 15px;
-  width: 250px;
+  min-width: 250px;
+  width: max-content;
   pointer-events: all!important
 }
 .create-shape-flow input, .create-shape-flow textarea {
