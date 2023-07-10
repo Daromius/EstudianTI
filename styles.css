@@ -857,6 +857,8 @@ div.firebase-emulator-warning {
   padding: 15px;
   min-width: 250px;
   width: max-content;
+  text-align: center;
+  font-size: 15px;  
   pointer-events: all!important
 }
 .create-shape-flow input, .create-shape-flow textarea {
@@ -884,6 +886,7 @@ div.firebase-emulator-warning {
   padding-right: 20px;
   border-radius: 5px;
   font-weight: 700;
+  
 }
 .create-shape-flow button:hover {
   cursor: pointer;
@@ -935,7 +938,7 @@ label {
 h1 {
   color: #222222;
   font-family: Inter;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   margin-top: 3px;
   white-space: initial;
@@ -943,12 +946,12 @@ h1 {
 h2 {
   color: #626C72;
   font-family: Inter;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
 }
 h3 {
   color: #626C72;
-  font-size: 13px;
+  font-size: 16px;
   font-family: Inter;
   font-weight: 500;
   margin-bottom: 0px;
