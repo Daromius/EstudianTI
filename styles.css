@@ -68,6 +68,34 @@ body {
   margin-right: auto;
   margin-top: 25px;
 }
+#logout {
+  height: 45px;
+  line-height: 45px;
+  border-radius: 5px;
+  background-color: #FFF;
+  border: 1px solid #E7EAEC;
+  box-sizing: border-box;
+  box-shadow: 0px 1px 2px rgba(53, 87, 98, 0.1);
+  text-align: center;
+  color: var(--text-grey);
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 14px;
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 25px;
+}
+#logout img {
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: middle;
+  margin-top: -2px;
+}
+#logout:hover {
+  cursor: pointer;
+  background-color: var(--hover-grey)!important;
+}
 #create-map {
   height: 45px;
   line-height: 45px;
@@ -367,18 +395,31 @@ th img {
   display: inline-block;
 }
 .delete-layer {
-  float: right;
+  right: 10px;
+  margin-top: 8px;
+  vertical-align: middle;
+  display: inline-block;
+  visibility: hidden;
+}
+.verify-mark {
   right: 20px;
   margin-top: 8px;
   vertical-align: middle;
   display: inline-block;
   visibility: hidden;
 }
+.verify-mark:hover {
+  cursor: pointer;
+  opacity: .6;
+}
 .delete-layer:hover {
   cursor: pointer;
   opacity: .6;
 }
 .annotation-item:hover .delete-layer {
+  visibility: visible!important;
+}
+.annotation-item:hover .verify-mark {
   visibility: visible!important;
 }
 .arrow-open {
@@ -476,7 +517,7 @@ th img {
   height: 48px;
   width: 350px;
   font-size: 15px;
-  border-radius: 5px;
+  border-radius: 100px;
   position: absolute;
   left: 33%;
   transform: translateX(calc(-50% + 338px));
