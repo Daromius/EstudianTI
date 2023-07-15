@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
 <head>
   <link rel="shortcut icon" href="#" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="leaflet.css" />
   <link rel="stylesheet" href="styles.css"/>
   <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
   <link rel="stylesheet" href="leaflet-routing-machine.css" />
@@ -16,7 +17,7 @@
 
    .sidebar {
       height: 100%;
-      width: 350px;
+      width: 0px;
       position: absolute;
       z-index: 99999;
       top: 0;
@@ -40,14 +41,21 @@
    }
 
    .sidebar .closebtn {
+    color: black; 
+    background-color: #FFF;
+  border: 1px solid #E7EAEC;
+  box-sizing: border-box;
+  box-shadow: 0px 2px 5px rgba(53, 87, 98, 0.1);
       position: absolute;
+      padding: 10px 20px;
       top: 0;
-      right: 25px;
+      right: 25px ;
       font-size: 36px;
-      margin-left: 50px;
-      margin-top: 25px;
-      color: black;
-   }
+      background-color: white;
+  margin-top:10%;
+  border-radius: 100px;
+}
+   
 
    .openbtn {
       font-size: 25px;
@@ -58,8 +66,8 @@
       position: fixed;
       z-index: 10;
       border-radius: 100px;
-      margin-left: 25px;
-      margin-top: 25px;
+      margin-left: 2%;
+      margin-top: 2%;
       background-color: #ffffff;
    }
 
@@ -87,12 +95,12 @@
 <title>EstudianTI</title>
 </head>
 <body style="margin:0px;">
-    
+
   </div>
   <div id="mySidebar" class="sidebar">
   <a href="javascript:void(0)" class="closebtn" onclick="hide()"><</a>
 <br></br>
-<center><h1>Estudianti</h1></center>
+<center><h1>EstudianTI</h1></center>
     <div class="section">
       <div class="section-name">Buscar</div>
       <table>
@@ -120,6 +128,15 @@
       <div id="annotations-list">
       </div>
     </div>
+    <script>
+      function show() {
+         document.getElementById("mySidebar").style.width = "350px";
+      }
+   
+      function hide() {
+         document.getElementById("mySidebar").style.width = "0";
+      }
+      </script>
     <div id="google-signin"><img src="assets/google-logo.svg"> Iniciar sesion</div>
     <div id="logout"><img src="assets/google-logo.svg"> Cerrar sesion</div>
   </div>
@@ -133,6 +150,7 @@
       document.getElementById("mySidebar").style.width = "0";
    }
    </script>
+   
   <div id="search-box">
     <input id="search-input" placeholder="Buscar"/>
     <img src="assets/search-icon.svg" >

@@ -716,6 +716,7 @@ map.locate({setView: true, maxZoom: 20});
           return user;
       }
   }
+  
 
   // Sign in
   function signIn() {
@@ -756,6 +757,7 @@ map.locate({setView: true, maxZoom: 20});
 
           // Get data from database
           checkData();
+          location.reload();  
         } else {
           // Prompt the user with a popup to create a map
           window.location.replace(window.location.href+"?file=mapa");

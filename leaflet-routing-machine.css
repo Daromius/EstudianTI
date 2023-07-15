@@ -251,7 +251,6 @@
 
 @media only screen and (max-width: 640px) {
     .leaflet-routing-container {
-        margin: 0 !important;
         padding: 0 !important;
         width: 100%;
         height: 100%;
