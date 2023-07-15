@@ -396,7 +396,8 @@ th img {
   display: inline-block;
 }
 .delete-layer {
-  right: 10px;
+  position: relative;
+  right: 18px;
   margin-top: 8px;
   vertical-align: middle;
   display: inline-block;
@@ -572,6 +573,7 @@ th img {
   z-index: 35;
   vertical-align: middle;
   box-shadow: 0 2px 4px rgb(0 0 0 / 10%), 0 -1px 0px rgb(0 0 0 / 2%);
+  visibility: hidden;
 }
 .tool {
   vertical-align: middle;

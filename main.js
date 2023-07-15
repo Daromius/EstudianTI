@@ -114,7 +114,8 @@ map.locate({setView: true, maxZoom: 20});
 }).addTo(map);
   }
   
-
+function editmark(marker){
+}
 
   function targetLiveLocation() {
 
@@ -628,6 +629,7 @@ map.locate({setView: true, maxZoom: 20});
     db.ref('rooms/'+room+'/objects/'+inst.id).update({
       verif: "si"
     })
+    alert('Marcador verificado.')
   }
 
   function deleteLayer(e) {
@@ -652,80 +654,6 @@ map.locate({setView: true, maxZoom: 20});
     }
   }
   
-
-  // Editing the name of the map
-  function editMapName(e) {
-    if (e.which != 3) {
-      return;
-    }
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      if (!editingname) {
-        oldname = mapname;
-        editingname = true;
-        $("#map-name").prop("disabled", false);
-        $("#map-name").addClass("map-editing");
-      }
-    }
-  }
-  function focusMapName() {
-    $("#map-name").select();
-    $("#map-name").addClass("map-editing");
-  }
-  function stopEditingMapName() {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      editingname = false;
-      $("#map-name").prop("disabled", true);
-      $("#map-name").removeClass("map-editing");
-      var name = sanitize($("#map-name").val());
-      if (name.length == 0) {
-        // Revert to the old name if its length is 0
-        $("#map-name").val(oldname);
-      } else {
-        // Otherwise, update the name in the database
-        db.ref("rooms/"+room+"/details").update({
-          name: name
-        })
-      }
-    }
-  }
-
-  // Editing the description of the map
-  function editMapDescription() {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      if (!editingdescription) {
-        olddescription = mapdescription;
-        editingdescription = true;
-        $("#map-description").prop("disabled", false);
-        $("#map-description").addClass("map-editing");
-      }
-    }
-  }
-  function focusMapDescription() {
-    $("#map-description").select();
-    $("#map-description").addClass("map-editing");
-  }
-  function stopEditingMapDescription() {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      editingdescription = false;
-      $("#map-description").prop("disabled", true);
-      $("#map-description").removeClass("map-editing");
-      var name = sanitize($("#map-description").val());
-      if (name.length == 0) {
-        // Revert to the old description if its length is 0
-        $("#map-description").val(olddescription);
-      } else {
-        // Otherwise, update the description in the database
-        db.ref("rooms/"+room+"/details").update({
-          description: name
-        })
-      }
-    }
-  }
-
   // Toggle annotation visibility
   function toggleAnnotations() {
     if (!$("#hide-annotations").hasClass("hidden-annotations")) {
@@ -960,6 +888,12 @@ if (snapshot.borrar == "si") {
           var marker = L.marker([snapshot.lat, snapshot.lng], {icon:marker_icon, interactive:true, direction:"top", pane:"overlayPane"});
           // Create the popup that shows data about the marker
           
+
+          if (snapshot.tipo =="Sodexo") {
+            marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
+         
+            
+          } else
           marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
           marker.addTo(map);
           marker.openTooltip();
@@ -1074,10 +1008,11 @@ if (snapshot.borrar == "si") {
   function buttonsxd(user) {
     var user = checkAuth();
     if (user == "patata") {
-      $("#drawing-controls").css({"visibility": "hidden"});
+      
       $("#logout").css({"visibility": "hidden"});
     } else {
       $("#google-signin").css({"visibility": "hidden"});
+      $("#drawing-controls").css({"visibility": "visible"});
     }
 
   }
@@ -1086,6 +1021,7 @@ setTimeout(function () {
   buttonsxd();
 }, 1000);
   // Event handlers
+  $(document).on("click", ".edit-button", editmark);
   $(document).on("click", ".route-button", rutamark);
   $(document).on("click", handleGlobalClicks);
   $(document).on("click", "#cursor-tool", cursorTool);
@@ -1098,12 +1034,6 @@ setTimeout(function () {
   $(document).on("click", ".annotation-item", focusLayer);
   $(document).on("click", ".delete-layer", deleteLayer);
   $(document).on("click", ".verify-mark", verify);
-  $(document).on("mousedown", "#map-name", editMapName);
-  $(document).on("mouseup", "#map-name", focusMapName);
-  $(document).on("focusout", "#map-name", stopEditingMapName);
-  $(document).on("mousedown", "#map-description", editMapDescription);
-  $(document).on("mouseup", "#map-description", focusMapDescription);
-  $(document).on("focusout", "#map-description", stopEditingMapDescription);
   $(document).on("click", "#hide-annotations", toggleAnnotations);
   $(document).on("click", "#location-control", targetLiveLocation);
   $(document).on("click", ".cancel-button-place", cancelNearby);
