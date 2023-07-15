@@ -213,8 +213,8 @@
 .leaflet-routing-collapse-btn {
     position: absolute;
     top: 0;
-    right: 6px;
-    font-size: 24px;
+    right: 10px;
+    font-size: 40px;
     color: #ccc;
     font-weight: bold;
 }
