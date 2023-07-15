@@ -1,7 +1,7 @@
 $(document).ready(function(){
   // Coordinates to center the map. Could let the user choose when creating a room & persist when sharing a link (via GET params)
-  const lat = 51.52;
-  const lon = -0.09;
+  const lat = -36.742424410590026;
+  const lon =  -72.46805777156217;
 
   // Initialize the Leaflet map
   var map = L.map('mapDiv', {
@@ -100,7 +100,6 @@ map.locate({setView: true, maxZoom: 20});
 
 
   function rutamark(){
-    console.log()
   L.Routing.control({
     waypoints: [
       L.latLng(userlocation.getLatLng()),
@@ -174,39 +173,20 @@ map.locate({setView: true, maxZoom: 20});
 
   // Enable marker tool
   function markerTool() {
-    resetTools();
-    markerson = true;
-    $(".tool-active").removeClass("tool-active");
-    $("#marker-tool").addClass("tool-active");
-    showAnnotations();
+    var user = checkAuth();
+    if (user != "patata") {resetTools();
+    
+      markerson = true;
+      $(".tool-active").removeClass("tool-active");
+      $("#marker-tool").addClass("tool-active");
+      showAnnotations();} else {
+        resetTools()}
+    
   }
 
 
   
 
-  // Enable line tool
-  function pathTool() {
-    resetTools();
-    $(".tool-active").removeClass("tool-active");
-    $("#path-tool").addClass("tool-active");
-
-    // Start creating a line
-    map.pm.setGlobalOptions({ pinning: true, snappable: true });
-    map.pm.setPathOptions({
-      color: color,
-      fillColor: color,
-      fillOpacity: 0.4,
-    });
-    map.pm.enableDraw('Line', {
-      tooltips: false,
-      snappable: true,
-      templineStyle: {color: color},
-      hintlineStyle: {color: color, dashArray: [5, 5]},
-      pmIgnore: false,
-      finishOn: 'dblclick',
-    });
-    showAnnotations();
-  }
 
  
   // Sanitizing input strings
@@ -247,44 +227,52 @@ map.locate({setView: true, maxZoom: 20});
 
   // Save marker/line/area data
   function saveForm(e) {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      enteringdata = false;
-      var inst = objects.filter(function(result){
-        return result.id === currentid && result.user === user.uid;
-      })[0];
-
-      // Get input values for the name and description and sanitize them
-      inst.name = sanitize($("#shape-name").val());
-      inst.desc = sanitize($("#shape-desc").val());
-      inst.tipo = sanitize($("#shape-tipo").val());
-      inst.completed = true;
-   
-
-      
-
-      // Remove existing popup (for inputting data)
-      inst.trigger.unbindTooltip();
-      if (inst.type == "marker") {
-        // Create a popup showing info about the marker
-        inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
-        db.ref("rooms/"+room+"/objects/"+currentid).update({
-          name: inst.name,
-          desc: inst.desc,
-          tipo: inst.tipo,
-          completed: true
-        })
+   if (document.getElementById("shape-tipo").value == "Seleccione un tipo" || document.getElementById("shape-desc").value == "" || document.getElementById("shape-name").value == "" )
+    {alert('Complete todos los campos y/o seleccione tipo.')} 
+    else 
+     {
+      var user = checkAuth();
+      if (checkAuth() != false) {
+        enteringdata = false;
+        var inst = objects.filter(function(result){
+          return result.id === currentid && result.user === user.uid;
+        })[0];
+  
+        // Get input values for the name and description and sanitize them
+        inst.name = sanitize($("#shape-name").val());
+        inst.desc = sanitize($("#shape-desc").val());
+        inst.tipo = sanitize($("#shape-tipo").val());
+        inst.completed = true;
+     
+  
+        
+  
+        // Remove existing popup (for inputting data)
+        inst.trigger.unbindTooltip();
+        if (inst.type == "marker") {
+          // Create a popup showing info about the marker
+          inst.trigger.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+inst.tipo+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow", offset: L.point({x: 0, y: -35})});
+          db.ref("rooms/"+room+"/objects/"+currentid).update({
+            name: inst.name,
+            desc: inst.desc,
+            tipo: inst.tipo,
+            borrar: "no",
+            completed: true
+            
+          })
+        }
+  
+        // Render the shape in the sidebar list and focus it
+        renderObjectLayer(inst);
+        $(".annotation-item[data-id='"+inst.id+"']").find(".annotation-name span").addClass("annotation-focus");
+  
+        // Automatically open the new popup with data about the shape
+        window.setTimeout(function(){
+          inst.trigger.openTooltip();
+        }, 200)
       }
-
-      // Render the shape in the sidebar list and focus it
-      renderObjectLayer(inst);
-      $(".annotation-item[data-id='"+inst.id+"']").find(".annotation-name span").addClass("annotation-focus");
-
-      // Automatically open the new popup with data about the shape
-      window.setTimeout(function(){
-        inst.trigger.openTooltip();
-      }, 200)
     }
+    
   }
 
 
@@ -317,249 +305,12 @@ map.locate({setView: true, maxZoom: 20});
         inst.trigger.openTooltip();
       }, 200)
     }
-  }
-
-  // Start drawing lines/areas
-  map.on('pm:drawstart', ({ workingLayer }) => {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      // Show hints for drawing lines/areas
-      followcursor.openTooltip();
-      followcursor.setTooltipContent("Click to place first vertex");
-
-      // Detect when a vertex is added to a line or area
-      workingLayer.on('pm:vertexadded', e => {
-        if (e.shape == "Polygon") {
-          // Update hints
-          followcursor.setTooltipContent("Click on first vertex to finish");
-          linelastcoord = e.layer._latlngs[e.layer._latlngs.length-1];
-          if (e.layer._latlngs.length == 1) {
-            // If this is the first vertex, get a key and add the new shape in the database
-            currentid = db.ref("rooms/"+room+"/objects").push().key;
-            db.ref("rooms/"+room+"/objects/"+currentid).set({
-              color: color,
-              initlat: e.layer._latlngs[0].lat,
-              initlng: e.layer._latlngs[0].lng,
-              user: user.uid,
-              type: "area",
-              session: session,
-              name: "Area",
-              desc: "",
-              distance: 0,
-              area: 0,
-              completed: false,
-              path: ""
-            });
-            db.ref("rooms/"+room+"/objects/"+currentid+"/coords/").push({
-              set:[linelastcoord.lat,linelastcoord.lng]
-            });
-            objects.push({id:currentid, local:true, color:color, user:user.uid, name:"Area", desc:"", trigger:"", distance:0, area:0, layer:"", type:"area", session:session, completed:false});
-          } else {
-            // If this is not the first vertex, update the data in the database with the latest coordinates
-            db.ref("rooms/"+room+"/objects/"+currentid+"/coords/").push({
-              set:[linelastcoord.lat,linelastcoord.lng]
-            })
-          }
-        } else if (e.shape == "Line") {
-          lineon = true;
-          linedistance = 0;
-          linelastcoord = e.layer._latlngs[e.layer._latlngs.length-1];
-          if (e.layer._latlngs.length == 1) {
-            // If this is the first vertex, get a key and add the new shape in the database
-            currentid = db.ref("rooms/"+room+"/objects").push().key;
-            db.ref("rooms/"+room+"/objects/"+currentid).set({
-              color: color,
-              initlat: e.layer._latlngs[0].lat,
-              initlng: e.layer._latlngs[0].lng,
-              user: user.uid,
-              type: "line",
-              session: session,
-              name: "Line",
-              desc: "",
-              distance: 0,
-              completed: false,
-              path: ""
-            });
-            db.ref("rooms/"+room+"/objects/"+currentid+"/coords/").push({
-              set:[linelastcoord.lat,linelastcoord.lng]
-            });
-            objects.push({id:currentid, local:true, color:color, user:user.uid, name:"Line", desc:"", trigger:"", distance:0, layer:"", type:"line", session:session, completed:false});
-          } else {
-            // If this is not the first vertex, update hints to show total distance drawn
-            e.layer._latlngs.forEach(function(coordinate, index){
-              if (index != 0) {
-                linedistance += e.layer._latlngs[index-1].distanceTo(coordinate);
-              }
-            });
-            followcursor.setTooltipContent((linedistance/1000)+"km | Double click to finish");
-
-            // Save new vertext in the database
-            db.ref("rooms/"+room+"/objects/"+currentid+"/coords/").push({
-              set:[linelastcoord.lat,linelastcoord.lng]
-            })
-          }
-        }
-      });
-    }
-  });
-
-  // Stop drawing lines / polygons
-  map.on('pm:drawend', e => {
-    lineon = false;
-    followcursor.closeTooltip();
-    cursorTool();
-  });
-
-  // Add tooltip to lines and polygons
-  map.on('pm:create', e => {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      enteringdata = true;
-      var inst = objects.filter(function(result){return result.id === currentid && result.user === user.uid;})[0];
-
-      // Calculate total distance / perimeter
-      inst.distance = parseFloat(turf.length(e.layer.toGeoJSON()).toFixed(2));
-      inst.layer = e.layer;
-      if (inst.type == "area") {
-        // Calculate area
-        inst.area = parseFloat((turf.area(e.layer.toGeoJSON())*0.000001).toFixed(2));
-
-        // Save all the area coordinates
-        var temppath = [];
-        Object.values(e.layer.getLatLngs()[0]).forEach(function(a){
-          temppath.push([Object.values(a)[0], Object.values(a)[1]]);
-        })
-
-        // Update the data in the database
-        db.ref("rooms/"+room+"/objects/"+currentid).update({
-          path:temppath,
-          area:inst.area
-        })
-      } else if (inst.type == "line") {
-        // Save all the line coordinates
-        var temppath = [];
-        Object.values(e.layer.getLatLngs()).forEach(function(a){
-          temppath.push([Object.values(a)[0], Object.values(a)[1]]);
-        })
-
-        // Update the data in the database
-        db.ref("rooms/"+room+"/objects/"+currentid).update({
-          path:temppath
-        })
-      }
-
-      // Create a marker so it can trigger a popup when clicking on a line, or area
-      var centermarker = L.marker(e.layer.getBounds().getCenter(), {zIndexOffset:9999, interactive:false, pane:"overlayPane"});
-
-      // Create a popup so users can name and give a description to the shape
-      centermarker.bindTooltip('<label for="shape-name">Nombre</label><input value="'+inst.name+'" id="shape-name" name="shape-name" /><label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:true, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: -15, y: 18})});
-
-      // The marker is supposed to be hidden, it's just for placing the tooltip on the map and triggering it
-      centermarker.setOpacity(0);
-      centermarker.addTo(map);
-      centermarker.openTooltip();
-
-      // Automatically select the name so it's faster to edit
-      $("#shape-name").focus();
-      $("#shape-name").select();
-
-      inst.trigger = centermarker;
-
-      // Detect when clicking on the shape
-      e.layer.on("click", function(e){
-        if (!erasing) {
-          // Set the popup to the mouse coordinates and open it
-          centermarker.setLatLng(cursorcoords);
-          centermarker.openTooltip();
-        } else {
-          // If erasing, delete the shape
-          inst.trigger.remove();
-          e.layer.remove();
-          db.ref("rooms/"+room+"/objects/"+inst.id).remove();
-          objects = $.grep(objects, function(e){
-               return e.id != inst.id;
-          });
-          $(".annotation-item[data-id='"+inst.id+"']").remove();
-        }
-      });
-
-      // Detect when closing the popup (e.g. when clicking outside of it)
-      centermarker.on('tooltipclose', function(e){
-        if (enteringdata) {
-          // If closing the popup before a name and description has been set, revert to defaults
-          cancelForm();
-        }
-
-        // De-select the object from the sidebar list
-        $(".annotation-item[data-id="+inst.id+"]").find(".annotation-name span").removeClass("annotation-focus");
-      });
-    }
-  });
-
-  // Start free drawing
-  function startDrawing(lat,lng,user) {
-    var line = L.polyline([[lat,lng]], {color: color});
-
-    // Create a new key for the line object, and set initial data in the database
-    currentid = db.ref("rooms/"+room+"/objects").push().key;
-    db.ref("rooms/"+room+"/objects/"+currentid).set({
-      color: color,
-      initlat: lat,
-      initlng: lng,
-      user: user.uid,
-      type: "draw",
-      session: session,
-      completed: true
-    });
-    db.ref("rooms/"+room+"/objects/"+currentid+"/coords/").push({
-      set:[lat,lng]
-    })
-
-    // Save an object with all the defaults
-    objects.push({id:currentid, user:user.uid, line:line, session:session, local:true, completed:true, type:"draw"});
-    line.addTo(map);
-
-    // Event handling for lines
-    objects.forEach(function(inst){
-      inst.line.on("click", function(event){
-        if (erasing) {
-          inst.line.remove();
-          db.ref("rooms/"+room+"/objects/"+inst.id).remove();
-          objects = $.grep(objects, function(e){
-               return e.id != inst.id;
-          });
-          $(".annotation-item[data-id='"+inst.id+"']").remove();
-        }
-      });
-      inst.line.on("mouseover", function(event){
-        if (erasing) {
-          inst.line.setStyle({opacity: .3});
-        }
-      });
-      inst.line.on("mouseout", function(event){
-        inst.line.setStyle({opacity: 1});
-      });
-    });
-  }
-
-
-  function colormark() {
-    console.log(document.getElementById("shape-tipo").value)
-        if (document.getElementById("shape-tipo").value == 'Utiles'){
-        color = "#52c441" }
-        else if (document.getElementById("shape-tipo").value == 'Sodexo'){
-          color = "#1945e3" }
-          else if (document.getElementById("shape-tipo").value == 'Paradero'){
-            color = "#db1832" }
-            }    
-      
-
-
-            
+  }        
 
  
   // Create a new marker
   function createmarker1(lat, lng, user) {
+    
     if (markerson) {
       // Go back to cursor tool after creating a marker
       cursorTool();
@@ -574,7 +325,7 @@ map.locate({setView: true, maxZoom: 20});
       var marker = L.marker([lat, lng], {icon:marker_icon, direction:"top", interactive:true, pane:"overlayPane"});
 
       // Create a popup to set the name and description of the marker
-      marker.bindTooltip('<label for="shape-name">Nombre</label><input value="Marcador" id="shape-name" name="shape-name" /><label for="shape-type">Tipo</label><select id="shape-tipo" name="shape-tipo" class="markcolor"><option>Seleccione un tipo</option><option value="Utiles">Utiles</option><option value ="Sodexo">Sodexo</option><option value ="Paradero">Paradero</option></select><label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: 0, y: -35})});
+      marker.bindTooltip('<label for="shape-name">Nombre</label><input id="shape-name" name="shape-name" /><label for="shape-type">Tipo</label><select id="shape-tipo" name="shape-tipo"><option>Seleccione un tipo</option><option value="Utiles">Utiles</option><option value ="Sodexo">Sodexo</option><option value ="Paradero">Paradero</option></select><label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: 0, y: -35})});
       marker.addTo(map);
       marker.openTooltip();
   currentid = db.ref("rooms/"+room+"/objects").push().key;
@@ -589,7 +340,8 @@ map.locate({setView: true, maxZoom: 20});
             session: session,
             name: "Marker",
             desc: "",
-            verif: verif
+            verif: verif,
+            borrar: "si"
             
           })
  
@@ -659,17 +411,7 @@ map.locate({setView: true, maxZoom: 20});
     mousedown = false;
   })
 
-  map.addEventListener('zoom', (event) => {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      // Save current view and zoom for observation mode
-      db.ref('rooms/'+room+'/users/'+user.uid).update({
-          view: [map.getBounds().getCenter().lat, map.getBounds().getCenter().lng],
-          zoom: map.getZoom()
-      });
- 
-    }
-  });
+
   map.addEventListener('movestart', (event) => {
     dragging = true;
   });
@@ -707,23 +449,11 @@ map.locate({setView: true, maxZoom: 20});
           user.providerData.forEach(profile => {
             // Set or update user data
             db.ref('rooms/'+room+'/users/'+user.uid).update({
-                lat:0,
-                lng:0,
-                active: true,
-                session: firebase.database.ServerValue.increment(1),
                 name: user.displayName,
-                imgsrc: profile.photoURL,
-                view: [map.getBounds().getCenter().lat, map.getBounds().getCenter().lng],
-                zoom: map.getZoom()
+                email: user.email
             });
           });
 
-          // Sometimes the session doesn't set properly, might need some time for the last call to go through?
-          window.setTimeout(function(){
-            db.ref('rooms/'+room+'/users/'+user.uid).once('value').then((snapshot) => {
-              session = snapshot.val().session;
-            });
-          }, 100);
 
           // Get data from database
           checkData();
@@ -735,6 +465,8 @@ map.locate({setView: true, maxZoom: 20});
       });
     });
   }
+
+
 
   // Log out
   function logOut() {
@@ -775,7 +507,8 @@ map.locate({setView: true, maxZoom: 20});
     if (!$(this).find(".annotation-name span").hasClass("annotation-focus")) {
       const id = $(this).attr("data-id");
       const inst = objects.find(x => x.id === id);
-
+       lati = inst.lat
+       longi = inst.lng
       // De-select any previously selected objects
       $(".annotation-focus").removeClass("annotation-focus");
 
@@ -895,8 +628,8 @@ map.locate({setView: true, maxZoom: 20});
     db.ref('rooms/'+room+'/objects/'+inst.id).update({
       verif: "si"
     })
-
   }
+
   function deleteLayer(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -1076,77 +809,6 @@ map.locate({setView: true, maxZoom: 20});
   }
 
 
-
-  // Add tooltips for shapes
-  function addShapeInfo(snapshot, key) {
-    if (snapshot.type != "draw" && snapshot.type != "marker") {
-      var user = checkAuth();
-      if (checkAuth() != false) {
-        var inst = objects.filter(function(result){
-          return result.id === key && result.user === snapshot.user
-        })[0];
-        inst.completed = true;
-
-        // Create a marker so a popup can be shown for the shape
-        var centermarker = L.marker(inst.line.getBounds().getCenter(), {zIndexOffset:9999, interactive:false, pane:"overlayPane"});
-
-        // If a marker was already set for the object, simply update the previous variable to reflect that
-        if (inst.trigger != "") {
-          centermarker = inst.trigger;
-          centermarker.unbindTooltip();
-        }
-
-        // Create popups that show the name, description, and data of the shapes
-        if (inst.type == "line") {
-          centermarker.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/distance-icon.svg">'+inst.distance+' km</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, closeOnClick:false, autoclose:false, bubblingMouseEvents:true, className:"create-shape-flow tooltip-off", offset: L.point({x: -15, y: 18})});
-        } else if (inst.type == "area") {
-          centermarker.bindTooltip('<h1>'+inst.name+'</h1><h2>'+inst.desc+'</h2><div class="shape-data"><h3><img src="assets/area-icon.svg">'+inst.area+' km&sup2;</h3></div><div class="shape-data"><h3><img src="assets/perimeter-icon.svg">'+inst.distance+' km</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow tooltip-off" ,offset: L.point({x: -15, y: 18})});
-
-          // Areas are lines until they are completed, when they become a polygon
-          inst.line.remove();
-          var polygon = L.polygon(inst.path, {color:inst.color}).addTo(map);
-          inst.line = polygon;
-        }
-
-        // Hide the marker (since it's only used for positioning the popup)
-        centermarker.setOpacity(0);
-        centermarker.addTo(map);
-        inst.trigger = centermarker;
-        centermarker.getTooltip().update();
-
-        // Detect when clicking on the shape
-        inst.line.on("click", function(){
-          if (!erasing) {
-            // Set the marker to the cursor coordinates and show the popup
-            inst.trigger.setLatLng(cursorcoords);
-            inst.trigger.openTooltip();
-            $(inst.trigger.getTooltip()._container).removeClass('tooltip-off');
-          } else {
-            // If erasing, delete the shape
-            inst.trigger.remove();
-            inst.line.remove();
-            db.ref("rooms/"+room+"/objects/"+inst.id).remove();
-            objects = $.grep(objects, function(e){
-                 return e.id != inst.id;
-            });
-            $(".annotation-item[data-id='"+inst.id+"']").remove();
-          }
-        });
-
-        // Detect when closing the popup
-        inst.line.on("tooltipclose", function(){
-          // De-select the object from the sidebar list
-          $(".annotation-item[data-id="+inst.id+"]").find(".annotation-name span").removeClass("annotation-focus");
-        });
-
-        // Render the object in the sidebar list
-        renderObjectLayer(inst);
-      }
-    }
-
-    
-  }
-
   // Render a new object
   function renderShape(snapshot, key) {
     var user = checkAuth();
@@ -1157,6 +819,11 @@ map.locate({setView: true, maxZoom: 20});
         }).length == 0) {
           // If the marker doesn't exist locally, create it
           
+if (snapshot.borrar == "si") {
+  db.ref("rooms/"+room+"/objects/"+key).remove();
+}
+
+
           if (user.uid == "6imDRKIl9oc2qHxwvTirQrJC1yd2") {
             var marker_icon;
             if (snapshot.verif == "si") {
@@ -1169,6 +836,7 @@ map.locate({setView: true, maxZoom: 20});
                   shadowAnchor: [4, 62],  // the same for the shadow
                   popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
                 });
+                
               } else if (snapshot.tipo =="Sodexo") {
                 marker_icon = L.divIcon({
                   html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#1945e3"/>/svg>',
@@ -1277,6 +945,7 @@ map.locate({setView: true, maxZoom: 20});
               shadowAnchor: [4, 62],
               popupAnchor:  [-3, -76]
             });
+            
           } else {
             marker_icon = L.divIcon({
               html: '',
@@ -1289,7 +958,6 @@ map.locate({setView: true, maxZoom: 20});
           
           
           var marker = L.marker([snapshot.lat, snapshot.lng], {icon:marker_icon, interactive:true, direction:"top", pane:"overlayPane"});
-
           // Create the popup that shows data about the marker
           
           marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
@@ -1336,47 +1004,11 @@ map.locate({setView: true, maxZoom: 20});
           }));
         }
       }
-      if (snapshot.completed) {
-        if (objects.filter(function(result){
-          return result.id === key && result.user === snapshot.user
-        }).length > 0) {
-          // If the shape is completed and it exists locally, update its data
-          var inst = objects.filter(function(result){
-            return result.id === key && result.user === snapshot.user
-          })[0];
-          inst.name = snapshot.name;
-          inst.desc = snapshot.desc;
-          if (snapshot.type == "area") {
-            inst.area = snapshot.area;
-            inst.distance = snapshot.distance;
-            inst.path = snapshot.path;
-          } else {
-            inst.distance = snapshot.distance;
-          }
-          addShapeInfo(snapshot, key);
-        }
-      }
+      
     
   }
 
-  // Update object coordinates
-  function updateShapeCoords(snapshot,key) {
-    var user = checkAuth();
-      if (snapshot.type == "draw" || snapshot.type == "line" || snapshot.type == "area") {
-        if (objects.filter(function(result){
-          return result.id === key && result.user === snapshot.user
-        }).length > 0) {
-          var coords = [];
-          Object.values(snapshot.coords).forEach(function(coord){
-            coords.push([coord.set[0], coord.set[1]]);
-          });
-          objects.filter(function(result){
-            return result.id === key && result.user === snapshot.user
-          })[0].line.setLatLngs(coords);
-        }
-      }
-    
-  }
+
 
 
   
@@ -1427,12 +1059,7 @@ map.locate({setView: true, maxZoom: 20});
             }
           });
           // Check for new or modified objects
-          Object.values(snapshot.val()).forEach(function(object, index){
-            if (object.user != user.uid || object.session != session) {
-              renderShape(object, Object.keys(snapshot.val())[index]);
-              updateShapeCoords(object,  Object.keys(snapshot.val())[index]);
-            }
-          })
+        
         }
       });
       // Update user status when disconnected
@@ -1444,16 +1071,28 @@ map.locate({setView: true, maxZoom: 20});
 
   
 
+  function buttonsxd(user) {
+    var user = checkAuth();
+    if (user == "patata") {
+      $("#drawing-controls").css({"visibility": "hidden"});
+      $("#logout").css({"visibility": "hidden"});
+    } else {
+      $("#google-signin").css({"visibility": "hidden"});
+    }
+
+  }
+
+setTimeout(function () {
+  buttonsxd();
+}, 1000);
   // Event handlers
   $(document).on("click", ".route-button", rutamark);
   $(document).on("click", handleGlobalClicks);
   $(document).on("click", "#cursor-tool", cursorTool);
   $(document).on("click", "#marker-tool", markerTool);
-  $(document).on("click", "#path-tool", pathTool);
   $(document).on("mouseover", ".tool", showTooltip);
   $(document).on("mouseout", ".tool", hideTooltip);
   $(document).on("click", ".save-button", saveForm);
-  $(document).on("change", ".markcolor", colormark);
   $(document).on("click", ".cancel-button", cancelForm);
   $(document).on("click", ".annotation-arrow", toggleLayer);
   $(document).on("click", ".annotation-item", focusLayer);
@@ -1480,7 +1119,6 @@ map.locate({setView: true, maxZoom: 20});
   $(document).on("click", "#share-copy", copyShareLink);
   $(document).on("click", "#zoom-in", zoomIn);
   $(document).on("click", "#zoom-out", zoomOut);
-
   // Search automatically when focused & pressing enter
   $(document).on("keydown", "#search-input", function(e){
     if (e.key === "Enter") {
