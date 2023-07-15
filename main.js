@@ -100,7 +100,6 @@ map.locate({setView: true, maxZoom: 20});
 
 
   function rutamark(){
-
     console.log()
   L.Routing.control({
     waypoints: [
@@ -111,6 +110,7 @@ map.locate({setView: true, maxZoom: 20});
     draggableWaypoints: false,
     addWaypoints: false,
     fitSelectedRoutes: false,
+    vehicle: 'foot',
     createMarker: function() { return null; }
 }).addTo(map);
   }
@@ -118,7 +118,7 @@ map.locate({setView: true, maxZoom: 20});
 
 
   function targetLiveLocation() {
-    stopObserving();
+
 
     // Check if user has geolocation enabled
     if (navigator.geolocation) {
@@ -243,37 +243,7 @@ map.locate({setView: true, maxZoom: 20});
     });
   }
 
-  // Enable observation mode
-  function observationMode() {
-    var user = checkAuth();
-    if (checkAuth() != false) {
-      var otheruser = $(this).attr("data-id");
-      if (otheruser != user.uid) {
-        if (observing.id == otheruser) {
-          // When clicking on the avatar of the current user you're observing, stop observing them
-          stopObserving();
-        } else {
-          // Start observing the selected user
-          observing.status = true;
-          observing.id = otheruser;
 
-          // Show that observation mode is enabled
-          $("#outline").css({"border": "6px solid "+cursors.find(x => x.id === otheruser).color});
-          $("#observing-name").html("Observing "+cursors.find(x => x.id === otheruser).name);
-          $("#observing-name").css({"background": cursors.find(x => x.id === otheruser).color});
-          $("#outline").addClass("observing");
-        }
-      }
-    }
-  }
-
-
-  // Disable observation mode
-  function stopObserving() {
-    observing.status = false;
-    $("#outline").css({"border": "none"});
-    $("#outline").removeClass("observing");
-  }
 
   // Save marker/line/area data
   function saveForm(e) {
@@ -697,7 +667,7 @@ map.locate({setView: true, maxZoom: 20});
           view: [map.getBounds().getCenter().lat, map.getBounds().getCenter().lng],
           zoom: map.getZoom()
       });
-      stopObserving();
+ 
     }
   });
   map.addEventListener('movestart', (event) => {
@@ -1485,7 +1455,6 @@ map.locate({setView: true, maxZoom: 20});
   $(document).on("click", ".save-button", saveForm);
   $(document).on("change", ".markcolor", colormark);
   $(document).on("click", ".cancel-button", cancelForm);
-  $(document).on("click", ".avatars", observationMode);
   $(document).on("click", ".annotation-arrow", toggleLayer);
   $(document).on("click", ".annotation-item", focusLayer);
   $(document).on("click", ".delete-layer", deleteLayer);

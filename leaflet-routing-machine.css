@@ -1,5 +1,6 @@
 .leaflet-routing-container, .leaflet-routing-error {
     width: 320px;
+    max-width: 80%;
     background-color: white;
     padding-top: 4px;
     right: 30px;
