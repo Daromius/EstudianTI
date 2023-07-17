@@ -831,7 +831,7 @@ th img {
   z-index: 99999;
 }
 .leaflet-overlay-pane canvas {
-  z-index: 230;
+  z-index: 2;
 }
 .leaflet-tooltip-pane {
   z-index: 100001;

@@ -38,7 +38,7 @@ $(document).ready(function(){
   var place_ids = [];
   var room = "";
   var verif = "no";
-
+  var hacer = "no"
 
 
   var colors = ["#EC1D43", "#EC811D", "#ECBE1D", "#B6EC1D", "#1DA2EC", "#781DEC", "#CF1DEC", "#222222"];
@@ -99,19 +99,32 @@ map.locate({setView: true, maxZoom: 20});
   }
 
 
+
+
   function rutamark(){
-  L.Routing.control({
+
+    
+if (hacer == "no") {
+  routingControl = L.Routing.control({
     waypoints: [
-      L.latLng(userlocation.getLatLng()),
-        L.latLng(lati, longi)
+      null
     ],
     language: 'es', // here's the magic
     draggableWaypoints: false,
     addWaypoints: false,
     fitSelectedRoutes: false,
-    vehicle: 'foot',
     createMarker: function() { return null; }
 }).addTo(map);
+}
+
+    
+
+routingControl.setWaypoints([
+  L.latLng(userlocation.getLatLng()),
+  L.latLng(lati, longi),
+]);
+
+hacer = "si"
   }
   
 function editmark(marker){
