@@ -9,39 +9,23 @@ $(document).ready(function(){
   }).setView([lat, lon], 13);
   L.PM.setOptIn(true);
   var db = firebase.database();
-  var mapname = "";
-  var oldname = "";
-  var mapdescription = "";
-  var olddescription = "";
-  var editingname = false;
-  var editingdescription = false;
-  var dragging = false;
   var enteringdata = false;
-  var cursorcoords = [0,0];
   var session = 0;
   var drawing = false;
   var erasing = false;
   var markerson = false;
-  var lineon = false;
-  var linelastcoord = [0,0];
-  var observing = {status:false, id:0};
-  var linedistance = 0;
-  var mousedown = false;
   var objects = [];
   var currentid = 0;
-  var color = "#EAEAEA";
-  var cursors = [];
   var userlocation = "";
   var lati = "";
   var longi = "";
-  var places = [];
-  var place_ids = [];
   var room = "";
   var verif = "no";
-  var hacer = "no"
+  var hacer = "no";
+  wa = "no";
+  we = "no";
+  wo = "no";
 
-
-  var colors = ["#EC1D43", "#EC811D", "#ECBE1D", "#B6EC1D", "#1DA2EC", "#781DEC", "#CF1DEC", "#222222"];
   // Get URL params
   var params = new URLSearchParams(window.location.search);
 
@@ -70,6 +54,7 @@ $(document).ready(function(){
     // Set the tile layer. Could use Mapbox, OpenStreetMap, etc.
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
+      minZoom: 7,
       zoomControl: false,
       noWrap: true
     }).addTo(map);
@@ -225,20 +210,6 @@ function editmark(marker){
     })
   }
 
-  // Remove nearby location
-  function cancelNearby() {
-    var inst = places.find(x => x.place_id == $(this).attr("data-id"));
-    inst.marker.remove();
-    places = $.grep(places, function(e){
-         return e.place_id != inst.id;
-    });
-    place_ids = $.grep(place_ids, function(e){
-         return e != inst.id;
-    });
-  }
-
-
-
   // Save marker/line/area data
   function saveForm(e) {
    if (document.getElementById("shape-tipo").value == "Seleccione un tipo" || document.getElementById("shape-desc").value == "" || document.getElementById("shape-name").value == "" )
@@ -258,9 +229,6 @@ function editmark(marker){
         inst.tipo = sanitize($("#shape-tipo").val());
         inst.completed = true;
      
-  
-        
-  
         // Remove existing popup (for inputting data)
         inst.trigger.unbindTooltip();
         if (inst.type == "marker") {
@@ -454,28 +422,13 @@ function editmark(marker){
     .then(() => {
       // Sign in using Google
       firebase.auth().signInWithPopup(provider).then((result) => {
-        // Check if user is inside a file
-        if (params.has('file')) {
-          $(".signin").removeClass("signin")
-          var user = result.user;
-
-          // Get user data
-          user.providerData.forEach(profile => {
-            // Set or update user data
-            db.ref('rooms/'+room+'/users/'+user.uid).update({
-                name: user.displayName,
-                email: user.email
-            });
-          });
+      
 
 
           // Get data from database
           checkData();
           location.reload();  
-        } else {
-          // Prompt the user with a popup to create a map
-          window.location.replace(window.location.href+"?file=mapa");
-        }
+        
       });
     });
   }
@@ -545,6 +498,50 @@ function editmark(marker){
     }
   }
 
+
+  function filtermark() {
+
+    if (wa == "si"){
+      map.addLayer(utiles)
+      wa = "no"
+      
+    }
+    
+else if (wa == "no"){
+  map.removeLayer(utiles)
+
+  wa = "si"
+}
+
+    
+  }
+  function filtermark2() {
+    if (we == "si"){
+      map.addLayer(sodexo)
+      we = "no"
+      
+    }
+    
+else if (we == "no"){
+  map.removeLayer(sodexo)
+
+  we = "si"
+}
+  }
+  function filtermark3() {
+    if (wo == "si"){
+      map.addLayer(paradero)
+      wo = "no"
+      
+    }
+    
+else if (wo == "no"){
+  map.removeLayer(paradero)
+
+  wo = "si"
+}
+  }
+
   // Render object in the sidebar
   function renderObjectLayer(object) {
     // Check that the object isn't already rendered in the list
@@ -554,14 +551,14 @@ function editmark(marker){
           if ($(".annotation-item[data-id='"+object.id+"']").length == 0) {
           
             if (object.tipo  == "Utiles") {
-              const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#52c441"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+              const icon = '<img width="30" height="30" src="assets/utilsside.png">';
               $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
             }
             else if (object.tipo == "Sodexo") {
-              const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#1945e3"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+              const icon = '<img width="30" height="30" src="assets/restaurantside.png">';
               $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
             } else if (object.tipo == "Paradero") {
-              const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#db1832"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+              const icon = '<img width="30" height="30" src="assets/busside.png">';
               $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
             }
           } else {
@@ -576,15 +573,15 @@ function editmark(marker){
         } else {
           if ($(".annotation-item[data-id='"+object.id+"']").length == 0) {
           if (object.tipo  == "Utiles") {
-            const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#000000"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            const icon = '<img width="30" height="30" src="assets/utilsside-no.png">';
             $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"> <img class="verify-mark" src="assets/zoomin.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
           }
           else if (object.tipo == "Sodexo") {
-            const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#000000"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-            $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg">  <img class="verify-mark" src="assets/zoomin.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
+            const icon = '<img width="30" height="30" src="assets/restaurantside-no.png">';
+                        $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg">  <img class="verify-mark" src="assets/zoomin.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
           } else if (object.tipo == "Paradero") {
-            const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#000000"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-            $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg">  <img class="verify-mark" src="assets/zoomin.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
+            const icon = '<img width="30" height="30" src="assets/busside-no.png">';
+                        $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg">  <img class="verify-mark" src="assets/zoomin.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
           }
         } else {
           // If the object already exists, update existing data
@@ -603,15 +600,15 @@ function editmark(marker){
           if ($(".annotation-item[data-id='"+object.id+"']").length == 0) {
           
             if (object.tipo  == "Utiles") {
-              const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#52c441"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-              $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
+              const icon = '<img width="30" height="30" src="assets/utilsside.png">';
+              $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
             }
             else if (object.tipo == "Sodexo") {
-              const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#1945e3"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-              $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
+              const icon = '<img width="30" height="30" src="assets/restaurantside.png">';
+              $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
             } else if (object.tipo == "Paradero") {
-              const icon = '<svg class="annotation-icon" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="23" height="23" rx="5" fill="#db1832"/><path d="M16.0252 11.2709C16.0252 14.8438 11.3002 17.9063 11.3002 17.9063C11.3002 17.9063 6.5752 14.8438 6.5752 11.2709C6.5752 10.0525 7.07301 8.8841 7.95912 8.0226C8.84522 7.16111 10.047 6.67712 11.3002 6.67712C12.5533 6.67712 13.7552 7.16111 14.6413 8.0226C15.5274 8.8841 16.0252 10.0525 16.0252 11.2709Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.2996 12.8021C12.1695 12.8021 12.8746 12.1166 12.8746 11.2709C12.8746 10.4252 12.1695 9.73962 11.2996 9.73962C10.4298 9.73962 9.72461 10.4252 9.72461 11.2709C9.72461 12.1166 10.4298 12.8021 11.2996 12.8021Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-              $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
+              const icon = '<img width="30" height="30" src="assets/busside.png">';
+              $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
             }
           } 
           else {
@@ -685,34 +682,8 @@ function editmark(marker){
     $("#hide-annotations").html("Ocultar todo");
   }
 
-  // Toggle dots menu
-  function toggleMoreMenu() {
-    if ($("#more-menu").hasClass("menu-show")) {
-      $("#more-menu").removeClass("menu-show");
-    } else {
-      $("#more-menu").addClass("menu-show");
-    }
-  }
+ 
 
-  // Show share popup
-  function showSharePopup() {
-    $("#share").addClass("share-show");
-    $("#overlay").addClass("share-show");
-  }
-
-  // Close share popup
-  function closeSharePopup() {
-    if ($("#overlay").hasClass("share-show")) {
-      $(".share-show").removeClass("share-show");
-    }
-  }
-
-  // Copy share link
-  function copyShareLink() {
-    $("#share-url").focus();
-    $("#share-url").select();
-    document.execCommand('copy');
-  }
 
   // Zoom in
   function zoomIn() {
@@ -764,32 +735,31 @@ if (snapshot.borrar == "si") {
   db.ref("rooms/"+room+"/objects/"+key).remove();
 }
 
-
+var marker_icon;
           if (user.uid == "6imDRKIl9oc2qHxwvTirQrJC1yd2") {
-            var marker_icon;
+            
             if (snapshot.verif == "si") {
               if (snapshot.tipo == "Utiles") {
                 // Set custom marker icon
-                marker_icon = L.divIcon({
-                  html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#52c441"/>/svg>',
-                  iconSize:     [30, 30], // size of the icon
-                  iconAnchor:   [15, 30], // point of the icon which will correspond to marker's location
-                  shadowAnchor: [4, 62],  // the same for the shadow
-                  popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+                marker_icon = L.icon({
+                  iconUrl: 'assets/utils.png',
+                  iconSize:     [40, 40],
+                  iconAnchor:   [15, 30],
+                  shadowAnchor: [4, 62],
+                  popupAnchor:  [-3, -76]
                 });
-                
               } else if (snapshot.tipo =="Sodexo") {
-                marker_icon = L.divIcon({
-                  html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#1945e3"/>/svg>',
-                  iconSize:     [30, 30],
+                marker_icon = L.icon({
+                  iconUrl: 'assets/restaurant.png',
+                  iconSize:     [40, 40],
                   iconAnchor:   [15, 30],
                   shadowAnchor: [4, 62],
                   popupAnchor:  [-3, -76]
                 });
               } else if (snapshot.tipo =="Paradero") {
-                marker_icon = L.divIcon({
-                  html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#db1832"/>/svg>',
-                  iconSize:     [30, 30],
+                marker_icon = L.icon({
+                  iconUrl: 'assets/bus.png',
+                  iconSize:     [40, 40],
                   iconAnchor:   [15, 30],
                   shadowAnchor: [4, 62],
                   popupAnchor:  [-3, -76]
@@ -807,25 +777,25 @@ if (snapshot.borrar == "si") {
               
             } else if (snapshot.tipo == "Utiles") {
               // Set custom marker icon
-              marker_icon = L.divIcon({
-                html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#000000"/>/svg>',
-                iconSize:     [30, 30], // size of the icon
-                iconAnchor:   [15, 30], // point of the icon which will correspond to marker's location
-                shadowAnchor: [4, 62],  // the same for the shadow
-                popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+              marker_icon = L.icon({
+                iconUrl: 'assets/utils-no.png',
+                iconSize:     [40, 40],
+                iconAnchor:   [15, 30],
+                shadowAnchor: [4, 62],
+                popupAnchor:  [-3, -76]
               });
             } else if (snapshot.tipo =="Sodexo") {
-              marker_icon = L.divIcon({
-                html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#000000"/>/svg>',
-                iconSize:     [30, 30],
+              marker_icon = L.icon({
+                iconUrl: 'assets/restaurant-no.png',
+                iconSize:     [40, 40],
                 iconAnchor:   [15, 30],
                 shadowAnchor: [4, 62],
                 popupAnchor:  [-3, -76]
               });
             } else if (snapshot.tipo =="Paradero") {
-              marker_icon = L.divIcon({
-                html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#000000"/>/svg>',
-                iconSize:     [30, 30],
+              marker_icon = L.icon({
+                iconUrl: 'assets/bus-no.png',
+                iconSize:     [40, 40],
                 iconAnchor:   [15, 30],
                 shadowAnchor: [4, 62],
                 popupAnchor:  [-3, -76]
@@ -844,25 +814,25 @@ if (snapshot.borrar == "si") {
           else if (snapshot.verif == "si") {
             if (snapshot.tipo == "Utiles") {
               // Set custom marker icon
-              marker_icon = L.divIcon({
-                html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#52c441"/>/svg>',
-                iconSize:     [30, 30], // size of the icon
-                iconAnchor:   [15, 30], // point of the icon which will correspond to marker's location
-                shadowAnchor: [4, 62],  // the same for the shadow
-                popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+              marker_icon = L.icon({
+                iconUrl: 'assets/utils.png',
+                iconSize:     [40, 40],
+                iconAnchor:   [15, 30],
+                shadowAnchor: [4, 62],
+                popupAnchor:  [-3, -76]
               });
             } else if (snapshot.tipo =="Sodexo") {
-              marker_icon = L.divIcon({
-                html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#1945e3"/>/svg>',
-                iconSize:     [30, 30],
+              marker_icon = L.icon({
+                iconUrl: 'assets/restaurant.png',
+                iconSize:     [40, 40],
                 iconAnchor:   [15, 30],
                 shadowAnchor: [4, 62],
                 popupAnchor:  [-3, -76]
               });
             } else if (snapshot.tipo =="Paradero") {
-              marker_icon = L.divIcon({
-                html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#db1832"/>/svg>',
-                iconSize:     [30, 30],
+              marker_icon = L.icon({
+                iconUrl: 'assets/bus.png',
+                iconSize:     [40, 40],
                 iconAnchor:   [15, 30],
                 shadowAnchor: [4, 62],
                 popupAnchor:  [-3, -76]
@@ -879,13 +849,40 @@ if (snapshot.borrar == "si") {
 
             
           } else if (user.uid == snapshot.user && snapshot.verif == "no"){
-            marker_icon = L.divIcon({
-              html: '<svg width="30" height="30" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M23 44.0833C23 44.0833 40.25 32.5833 40.25 19.1666C40.25 14.5916 38.4326 10.204 35.1976 6.96903C31.9626 3.73403 27.575 1.91663 23 1.91663C18.425 1.91663 14.0374 3.73403 10.8024 6.96903C7.56741 10.204 5.75 14.5916 5.75 19.1666C5.75 32.5833 23 44.0833 23 44.0833ZM28.75 19.1666C28.75 22.3423 26.1756 24.9166 23 24.9166C19.8244 24.9166 17.25 22.3423 17.25 19.1666C17.25 15.991 19.8244 13.4166 23 13.4166C26.1756 13.4166 28.75 15.991 28.75 19.1666Z" fill="#000000"/>/svg>',
-              iconSize:     [30, 30],
-              iconAnchor:   [15, 30],
-              shadowAnchor: [4, 62],
-              popupAnchor:  [-3, -76]
-            });
+            if (snapshot.tipo == "Utiles") {
+              // Set custom marker icon
+              marker_icon = L.icon({
+                iconUrl: 'assets/utils-no.png',
+                iconSize:     [40, 40],
+                iconAnchor:   [15, 30],
+                shadowAnchor: [4, 62],
+                popupAnchor:  [-3, -76]
+              });
+            } else if (snapshot.tipo =="Sodexo") {
+              marker_icon = L.icon({
+                iconUrl: 'assets/restaurant-no.png',
+                iconSize:     [40, 40],
+                iconAnchor:   [15, 30],
+                shadowAnchor: [4, 62],
+                popupAnchor:  [-3, -76]
+              });
+            } else if (snapshot.tipo =="Paradero") {
+              marker_icon = L.icon({
+                iconUrl: 'assets/bus-no.png',
+                iconSize:     [40, 40],
+                iconAnchor:   [15, 30],
+                shadowAnchor: [4, 62],
+                popupAnchor:  [-3, -76]
+              });
+            } else {
+              marker_icon = L.divIcon({
+                html: '',
+                iconSize:     [1, 1],
+                iconAnchor:   [1, 1],
+                shadowAnchor: [1, 1],
+                popupAnchor:  [1, 1]
+              });
+            }
             
           } else {
             marker_icon = L.divIcon({
@@ -898,15 +895,38 @@ if (snapshot.borrar == "si") {
           }
           
           
-          var marker = L.marker([snapshot.lat, snapshot.lng], {icon:marker_icon, interactive:true, direction:"top", pane:"overlayPane"});
+          var marker = L.marker([snapshot.lat, snapshot.lng], {icon:marker_icon, riseOnHover:true, riseOffset:250, title:snapshot.tipo, interactive:true, direction:"top", pane:"overlayPane"});
           // Create the popup that shows data about the marker
-          
-
+      
+     
           marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
-          marker.addTo(map);
-          marker.openTooltip();
+
+          if (snapshot.tipo == "Utiles" && snapshot.verif == "si"){
+              
+            marker.addTo(utiles)
+
+            utiles.addTo(map)
+            
+          } else if (snapshot.tipo == "Sodexo" && snapshot.verif == "si"){
+            marker.addTo(sodexo)
+
+            sodexo.addTo(map)
+          } else if (snapshot.tipo == "Paradero" && snapshot.verif == "si"){
+            marker.addTo(paradero)
+
+            paradero.addTo(map)
+          } else if (user.uid == "6imDRKIl9oc2qHxwvTirQrJC1yd2" && snapshot.verif == "no"){
+            marker.addTo(noverif)
+
+            noverif.addTo(map)
+          } else if (user.uid == snapshot.user && snapshot.verif == "no"){
+            marker.addTo(noverif)
+
+            noverif.addTo(map)
+          }
 
           
+
           // Save the marker locally
           objects.push({id:key, user:snapshot.user, marker:marker, color:snapshot.color, name:snapshot.name, desc:snapshot.desc, tipo:snapshot.tipo, verif:snapshot.verif, session:snapshot.session, local:false, lat:snapshot.lat, lng:snapshot.lng, completed:true, type:"marker"});
 
@@ -952,11 +972,22 @@ if (snapshot.borrar == "si") {
 
 
 
+    utiles = L.layerGroup([])
+    sodexo = L.layerGroup([])
+    paradero = L.layerGroup([])
+    noverif = L.layerGroup([])
 
-  
+      
+      setTimeout(function () {
+        var user = checkAuth();
+      if (user != "patata") {
+      }
+      }, 1000);
+    
+    
+   
   // Interact with the database
   function checkData() {
-    var user = checkAuth();
 
       
 
@@ -1005,9 +1036,7 @@ if (snapshot.borrar == "si") {
         }
       });
       // Update user status when disconnected
-      db.ref("rooms/"+room+"/users/"+user.uid).onDisconnect().update({
-        active: false
-      })
+      
     
   }
 
@@ -1044,17 +1073,14 @@ setTimeout(function () {
   $(document).on("click", ".verify-mark", verify);
   $(document).on("click", "#hide-annotations", toggleAnnotations);
   $(document).on("click", "#location-control", targetLiveLocation);
-  $(document).on("click", ".cancel-button-place", cancelNearby);
-  $(document).on("click", "#more-vertical", toggleMoreMenu);
   $(document).on("click", "#geojson", exportGeoJSON);
   $(document).on("click", "#search-box img", search);
   $(document).on("click", "#google-signin", signIn);
   $(document).on("click", "#create-map", createMap);
   $(document).on("click", "#logout", logOut);
-  $(document).on("click", "#share-button", showSharePopup);
-  $(document).on("click", "#overlay", closeSharePopup);
-  $(document).on("click", "#close-share", closeSharePopup);
-  $(document).on("click", "#share-copy", copyShareLink);
+  $(document).on("click", ".filter-mark", filtermark);
+  $(document).on("click", ".filter-mark2", filtermark2);
+  $(document).on("click", ".filter-mark3", filtermark3);
   $(document).on("click", "#zoom-in", zoomIn);
   $(document).on("click", "#zoom-out", zoomOut);
   // Search automatically when focused & pressing enter
