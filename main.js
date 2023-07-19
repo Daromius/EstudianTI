@@ -500,7 +500,6 @@ function editmark(marker){
 
 
   function filtermark() {
-
     if (wa == "si"){
       map.addLayer(utiles)
       wa = "no"
@@ -895,7 +894,7 @@ var marker_icon;
           }
           
           
-          var marker = L.marker([snapshot.lat, snapshot.lng], {icon:marker_icon, riseOnHover:true, riseOffset:250, title:snapshot.tipo, interactive:true, direction:"top", pane:"overlayPane"});
+          var marker = L.marker([snapshot.lat, snapshot.lng], {icon:marker_icon, zIndexOffset:50, riseOnHover:true, riseOffset:250, title:snapshot.tipo, interactive:true, direction:"top", pane:"overlayPane"});
           // Create the popup that shows data about the marker
       
      
