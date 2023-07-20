@@ -307,7 +307,7 @@ function editmark(marker){
       var marker = L.marker([lat, lng], {icon:marker_icon, direction:"top", interactive:true, pane:"overlayPane"});
 
       // Create a popup to set the name and description of the marker
-      marker.bindTooltip('<label for="shape-name">Nombre</label><input id="shape-name" name="shape-name" /><label for="shape-type">Tipo</label><select id="shape-tipo" name="shape-tipo"><option>Seleccione un tipo</option><option value="Utiles">Utiles</option><option value ="Sodexo">Sodexo</option><option value ="Paradero">Paradero</option></select><label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: 0, y: -35})});
+      marker.bindTooltip('<label for="shape-name">Nombre</label><input id="shape-name" name="shape-name" /><label for="shape-type">Tipo</label><select id="shape-tipo" name="shape-tipo"><option>Seleccione un tipo</option><option value="Útiles">Útiles</option><option value ="Sodexo">Sodexo</option><option value ="Paradero">Paradero</option></select><label for="shape-desc">Descripcion</label><textarea id="shape-desc" name="description"></textarea><br><div id="buttons"><button class="cancel-button">Cancelar</button><button class="save-button">Guardar</button></div><div class="arrow-down"></div>', {permanent: true, direction:"top", interactive:false, bubblingMouseEvents:false, className:"create-shape-flow create-form", offset: L.point({x: 0, y: -35})});
       marker.addTo(map);
       marker.openTooltip();
   currentid = db.ref("rooms/"+room+"/objects").push().key;
@@ -503,13 +503,14 @@ function editmark(marker){
     if (wa == "si"){
       map.addLayer(utiles)
       wa = "no"
-      
+      $(".filter-mark").css({"opacity": "1.0"});
     }
     
 else if (wa == "no"){
   map.removeLayer(utiles)
 
   wa = "si"
+  $(".filter-mark").css({"opacity": "0.3"});
 }
 
     
@@ -518,26 +519,29 @@ else if (wa == "no"){
     if (we == "si"){
       map.addLayer(sodexo)
       we = "no"
-      
+      $(".filter-mark2").css({"opacity": "1.0"});
     }
     
 else if (we == "no"){
   map.removeLayer(sodexo)
 
   we = "si"
+  $(".filter-mark2").css({"opacity": "0.3"});
+  
 }
   }
   function filtermark3() {
     if (wo == "si"){
       map.addLayer(paradero)
       wo = "no"
-      
+      $(".filter-mark3").css({"opacity": "1.0"});
     }
     
 else if (wo == "no"){
   map.removeLayer(paradero)
 
   wo = "si"
+  $(".filter-mark3").css({"opacity": "0.3"});
 }
   }
 
@@ -549,7 +553,7 @@ else if (wo == "no"){
         if (object.verif == "si") {
           if ($(".annotation-item[data-id='"+object.id+"']").length == 0) {
           
-            if (object.tipo  == "Utiles") {
+            if (object.tipo  == "Útiles") {
               const icon = '<img width="30" height="30" src="assets/utilsside.png">';
               $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
             }
@@ -571,7 +575,7 @@ else if (wo == "no"){
           }
         } else {
           if ($(".annotation-item[data-id='"+object.id+"']").length == 0) {
-          if (object.tipo  == "Utiles") {
+          if (object.tipo  == "Útiles") {
             const icon = '<img width="30" height="30" src="assets/utilsside-no.png">';
             $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"> <img class="verify-mark" src="assets/zoomin.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
           }
@@ -598,7 +602,7 @@ else if (wo == "no"){
         if (object.verif == "si") {
           if ($(".annotation-item[data-id='"+object.id+"']").length == 0) {
           
-            if (object.tipo  == "Utiles") {
+            if (object.tipo  == "Útiles") {
               const icon = '<img width="30" height="30" src="assets/utilsside.png">';
               $("#annotations-list").prepend('<div class="annotation-item" data-id="'+object.id+'"><div class="annotation-name"><img class="annotation-arrow" src="assets/arrow.svg">'+icon+'<span>'+object.name+'</span><img class="delete-layer" src="assets/delete.svg"></div><div class="annotation-details annotation-closed"><div class="annotation-description">'+object.desc+'</div><div class="annotation-data"><div class="annotation-data-field"><img src="assets/marker-small-icon.svg">'+object.lat.toFixed(5)+', '+object.lng.toFixed(5)+'</div></div></div></div>');
             }
@@ -738,7 +742,7 @@ var marker_icon;
           if (user.uid == "6imDRKIl9oc2qHxwvTirQrJC1yd2") {
             
             if (snapshot.verif == "si") {
-              if (snapshot.tipo == "Utiles") {
+              if (snapshot.tipo == "Útiles") {
                 // Set custom marker icon
                 marker_icon = L.icon({
                   iconUrl: 'assets/utils.png',
@@ -774,7 +778,7 @@ var marker_icon;
               }
   
               
-            } else if (snapshot.tipo == "Utiles") {
+            } else if (snapshot.tipo == "Útiles") {
               // Set custom marker icon
               marker_icon = L.icon({
                 iconUrl: 'assets/utils-no.png',
@@ -811,7 +815,7 @@ var marker_icon;
           }
           
           else if (snapshot.verif == "si") {
-            if (snapshot.tipo == "Utiles") {
+            if (snapshot.tipo == "Útiles") {
               // Set custom marker icon
               marker_icon = L.icon({
                 iconUrl: 'assets/utils.png',
@@ -848,7 +852,7 @@ var marker_icon;
 
             
           } else if (user.uid == snapshot.user && snapshot.verif == "no"){
-            if (snapshot.tipo == "Utiles") {
+            if (snapshot.tipo == "Útiles") {
               // Set custom marker icon
               marker_icon = L.icon({
                 iconUrl: 'assets/utils-no.png',
@@ -900,7 +904,7 @@ var marker_icon;
      
           marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
 
-          if (snapshot.tipo == "Utiles" && snapshot.verif == "si"){
+          if (snapshot.tipo == "Útiles" && snapshot.verif == "si"){
               
             marker.addTo(utiles)
 
