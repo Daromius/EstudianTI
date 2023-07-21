@@ -88,6 +88,11 @@ map.locate({setView: true, maxZoom: 20});
 
   function rutamark(){
 
+
+    if (userlocation == "")
+    {
+      alert('Necesita tener la localizacion de su dispositivo activada.')
+    } else
     
 if (hacer == "no") {
   routingControl = L.Routing.control({
@@ -116,6 +121,11 @@ function editmark(marker){
 }
 
   function targetLiveLocation() {
+
+    if (userlocation == "")
+    {
+      alert('Necesita tener la localizacion de su dispositivo activada.')
+    } else
 
 
     // Check if user has geolocation enabled
@@ -497,6 +507,7 @@ function editmark(marker){
       }
     }
   }
+
 
 
   function filtermark() {
