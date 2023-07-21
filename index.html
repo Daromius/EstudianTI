@@ -38,7 +38,7 @@
    }
 
    .sidebar a:hover {
-      color: #f1f1f1;
+    background-color: #bebebe;
    }
 
    .sidebar .closebtn {
@@ -56,7 +56,29 @@
   margin-top:10%;
   border-radius: 100px;
 }
+
+
+#popup .closebtn {
+    color: black; 
+    background-color: #FFF;
+  border: 1px solid #E7EAEC;
+  box-sizing: border-box;
+  box-shadow: 0px 2px 5px rgba(53, 87, 98, 0.1);
+      position: absolute;
+      padding: 3px 11px;
+      top: 0;
+      right: 10px ;
+      font-size: 28px;
+      background-color: white;
+  margin-top:2%;
+  border-radius: 100px;
+  text-decoration: none;
+}
    
+
+#popup .closebtn:hover {
+    background-color: #bebebe;
+   }
 
    .openbtn {
       font-size: 25px;
@@ -73,7 +95,7 @@
    }
 
    .openbtn:hover {
-      background-color: #444;
+    background-color: #bebebe;
    }
  
    #content {
@@ -96,7 +118,30 @@
 <title>EstudianTI</title>
 </head>
 <body style="margin:0px;">
-
+  <div id="popup">
+    <a href="javascript:void(0)" class="closebtn" onclick="hideintro()">X</a>
+    <div class="header-text">Bienvenido a EstudianTI</div>  
+    <div class="subheader-text">Seleccione que tipo de marcadores quiere ver. (todos activados por defecto)</div>
+    <br></br>
+    <table>
+      <tr>
+        <th class="filter-mark3">
+          <img width="80" height="80" src="assets/busfilter.png"><br>
+          Paraderos
+        </th>
+        <th class="filter-mark2">
+          <img width="80" height="80" src="assets/restaurantfilter.png"><br>
+          Sodexo
+        </th>
+        <th class="filter-mark">
+          <img width="80" height="80" src="assets/utilfilter.png"><br>
+          Útiles
+        </th>
+      </tr>
+    </table>
+    <center><h2>Tambien se pueden mostrar y ocultar los marcadores en el menu lateral.</h2></center>
+  </div>
+  <div id="overlay"></div>
   </div>
   <div id="mySidebar" class="sidebar">
   <a href="javascript:void(0)" class="closebtn" onclick="hide()"><</a>
@@ -135,6 +180,10 @@
    
       function hide() {
          document.getElementById("mySidebar").style.width = "0";
+      }
+      function hideintro() {
+         document.getElementById("popup").style.visibility = "hidden";
+         document.getElementById("overlay").style.visibility = "hidden";
       }
       </script>
     <div id="google-signin"><img src="assets/google-logo.svg"> Iniciar sesion</div>
