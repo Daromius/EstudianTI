@@ -107,12 +107,16 @@ if (hacer == "no") {
 }).addTo(map);
 }
 
-    
+
 
 routingControl.setWaypoints([
   L.latLng(userlocation.getLatLng()),
   L.latLng(lati, longi),
 ]);
+
+$(".leaflet-touch .leaflet-bar").css({"visibility": "visible"});
+$(".leaflet-overlay-pane canvas").css({"visibility": "visible"});
+$("#rutastop").css({"visibility": "visible"});
 
 hacer = "si"
   }
@@ -136,7 +140,7 @@ function editmark(marker){
           userlocation.setLatLng([position.coords.latitude, position.coords.longitude]);
 
           // Flies to the location (more fancy)
-          map.flyTo(userlocation.getLatLng(), 18)
+          map.flyTo(userlocation.getLatLng(), 15)
         });
       } else {
         // If the location is unknown, set it and fly there
@@ -1028,7 +1032,12 @@ var marker_icon;
     
   }
 
-  
+  function rutastop(){
+
+    $(".leaflet-touch .leaflet-bar").css({"visibility": "hidden"});
+    $(".leaflet-overlay-pane canvas").css({"visibility": "hidden"});
+    $("#rutastop").css({"visibility": "hidden"});
+  }
 
   function buttonsxd(user) {
     var user = checkAuth();
@@ -1066,6 +1075,7 @@ setTimeout(function () {
   $(document).on("click", "#google-signin", signIn);
   $(document).on("click", "#create-map", createMap);
   $(document).on("click", "#logout", logOut);
+  $(document).on("click", ".ruta-stop", rutastop);
   $(document).on("click", ".filter-mark", filtermark);
   $(document).on("click", ".filter-mark2", filtermark2);
   $(document).on("click", ".filter-mark3", filtermark3);

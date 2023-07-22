@@ -376,7 +376,7 @@ th img {
   margin-left: 8px;
   vertical-align: middle;
   overflow: hidden;
-  width: 230px;
+  width: 215px;
   text-overflow: ellipsis;
   white-space: nowrap;
   display: inline-block;
@@ -395,15 +395,14 @@ th img {
 }
 .delete-layer {
   position: relative;
-  right: 18px;
-  margin-top: 8px;
+  left: 40  px;
   vertical-align: middle;
   display: inline-block;
   visibility: hidden;
 }
 .verify-mark {
-  right: 20px;
-  margin-top: 8px;
+  position: relative;
+  left: 15px;
   vertical-align: middle;
   display: inline-block;
   visibility: hidden;
@@ -593,6 +592,28 @@ th img {
 }
 .tool-active img {
   opacity: 1!important;
+}
+
+
+#rutastop {
+  position: absolute;
+  left: 11px  ;
+  height: 5%;
+  min-width: 125px;
+  min-height: 50px;
+  max-height: 50px;
+  background-color: #FFF;
+  border-radius: 5px;
+  bottom: 11px;
+  z-index: 55;
+  vertical-align: middle;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 10%), 0 -1px 0px rgb(0 0 0 / 2%);
+  color:black;
+  visibility: hidden;
+}
+#rutastop:hover {
+  cursor: pointer;
+  background-color: #bebebe;
 }
 /* Color picker */
 #color-picker {
@@ -1003,6 +1024,15 @@ h3 {
   font-weight: 500;
   margin-bottom: 0px;
   margin-top: 0px;
+}
+h4 {
+  top: 1px;
+  font-family: Inter;
+  font-size: 16px;
+  font-weight: 500;
+  white-space: initial;
+  text-align: center;
+  line-height: 10px;
 }
 h3 img {
   display: inline-block;

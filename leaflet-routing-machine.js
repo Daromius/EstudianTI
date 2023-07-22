@@ -16735,7 +16735,7 @@ module.exports = L.Routing = {
 				L.DomEvent.on(collapseBtn, 'click', itinerary._toggle, itinerary);
 				itinerary._container.insertBefore(collapseBtn, itinerary._container.firstChild);
 			},
-			collapseBtnClass: 'leaflet-routing-collapse-btn'
+			collapseBtnClass: ''
 		},
 
 		initialize: function(options) {
@@ -17929,17 +17929,7 @@ module.exports = L.Routing = {
 
 			if (!this.options.suppressDemoServerWarning &&
 				this.options.serviceUrl.indexOf('//router.project-osrm.org') >= 0) {
-				console.warn('You are using OSRM\'s demo server. ' +
-					'Please note that it is **NOT SUITABLE FOR PRODUCTION USE**.\n' +
-					'Refer to the demo server\'s usage policy: ' +
-					'https://github.com/Project-OSRM/osrm-backend/wiki/Api-usage-policy\n\n' +
-					'To change, set the serviceUrl option.\n\n' +
-					'Please do not report issues with this server to neither ' +
-					'Leaflet Routing Machine or OSRM - it\'s for\n' +
-					'demo only, and will sometimes not be available, or work in ' +
-					'unexpected ways.\n\n' +
-					'Please set up your own OSRM server, or use a paid service ' +
-					'provider for production.');
+
 			}
 		},
 
