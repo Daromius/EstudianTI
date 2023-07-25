@@ -90,11 +90,66 @@
   border-radius: 100px;
   text-decoration: none;
 }
+
+
+#userside .closebtn {
+  color: black; 
+    background-color: #FFF;
+  border: 1px solid #E7EAEC;
+  box-sizing: border-box;
+  box-shadow: 0px 2px 5px rgba(53, 87, 98, 0.1);
+      position: absolute;
+      padding: 10px 20px;
+      top: 0;
+      right: 25px ;
+      font-size: 36px;
+      background-color: white;
+  margin-top:10%;
+  border-radius: 100px;
+  text-decoration: none;
+}
    
+.sidebaruser {
+      height: 100%;
+      width: 0px;
+      position: absolute;
+      z-index: 99999;
+      top: 0;
+      left: 0;
+      background-color: #ffffff;
+      overflow-x: hidden;
+      transition: 0.5s;
+      max-width: 95%;
+   }
+
+   .openbtnuser {
+    font-size: 25px;
+    cursor: pointer;
+    color: black;
+    padding: 10px 15px;
+    border: none;
+    position: fixed;
+    z-index: 10;
+    top: 75px;
+    left: 5px;
+    border-radius: 100px;
+    margin-left: 2%;
+    margin-top: 2%;
+    background-color: #ffffff;
+}
+   
+
+   .openbtnuser:hover {
+    background-color: #bebebe;
+   }
 
 #popup .closebtn:hover {
     background-color: #bebebe;
    }
+
+   #userside .closebtn:hover {
+    background-color: #bebebe;
+   }   
 
    .openbtn {
       font-size: 25px;
@@ -156,6 +211,7 @@
       </tr>
     </table>
     <center><h2>Tambien se pueden mostrar y ocultar los marcadores en el menu lateral.</h2></center>
+    <center><h2>(Si faltan marcadores, lo puede agregar usted mismo al iniciar sesion y usar el boton de marcador).</h2></center>
   </div>
   <div id="popup2">
     <a href="javascript:void(0)" class="closebtn" onclick="hidetuto()">X</a>
@@ -165,6 +221,18 @@
     <center><h2>Todos los marcadores son verificados manualmente, ¡asi que sea paciente!</h2></center>
   </div>
   <div id="overlay"></div>
+  <div id="userside" class="sidebaruser">
+    
+    <a href="javascript:void(0)" class="closebtn" onclick="hideuser()"><</a>
+    <br></br>
+    <center><h1>Panel de Usuario</h1></center>
+    <br></br><br></br><br></br>
+    <div id="google-signin"><img src="assets/google-logo.svg"> Iniciar sesion</div>
+    <div id="logout"><img src="assets/google-logo.svg"> Cerrar sesion</div>
+
+    <div class="nombr"></div>
+    <div class="userid"></div>
+    
   </div>
   <div id="mySidebar" class="sidebar">
   <a href="javascript:void(0)" class="closebtn" onclick="hide()"><</a>
@@ -197,12 +265,12 @@
       </div>
     </div>
     <script>
-      function show() {
-         document.getElementById("mySidebar").style.width = "350px";
+      function showuser() {
+         document.getElementById("userside").style.width = "350px";
       }
    
-      function hide() {
-         document.getElementById("mySidebar").style.width = "0";
+      function hideuser() {
+         document.getElementById("userside").style.width = "0";
       }
       function hideintro() {
          document.getElementById("popup").style.visibility = "hidden";
@@ -213,10 +281,10 @@
          document.getElementById("overlay").style.visibility = "hidden";
       }
       </script>
-    <div id="google-signin"><img src="assets/google-logo.svg"> Iniciar sesion</div>
-    <div id="logout"><img src="assets/google-logo.svg"> Cerrar sesion</div>
+    
   </div>
   <button class="openbtn" id="openbtn" onclick="show()">☰</button>
+  <button class="openbtnuser" id="openbtnuser" onclick="showuser()"><img width="20" height="20" src="assets/user.png"></button>
   <script>
    function show() {
       document.getElementById("mySidebar").style.width = "350px";

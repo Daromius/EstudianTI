@@ -3,7 +3,7 @@
     max-width: 80%;
     background-color: white;
     padding-top: 4px;
-    right: 30px;
+    right: 5px;
     transition: all 0.2s ease;
     box-sizing: border-box;
 }
@@ -31,7 +31,7 @@
     margin-top: 2px;
     margin-bottom: 6px;
     border-bottom: 1px solid #ccc;
-    max-height: 320px;
+    max-height: 160px;
     overflow-y: auto;
     transition: all 0.2s ease;
 }
@@ -47,7 +47,7 @@
 
 .leaflet-routing-alt-minimized {
     color: #888;
-    max-height: 64px;
+    max-height: 32px;
     overflow: hidden;
     cursor: pointer;
 }

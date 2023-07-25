@@ -299,10 +299,6 @@ function editmark(marker){
         db.ref("rooms/"+room+"/objects/"+currentid).remove()
       }
 
-      // Render shape in the sidebar list and focus it
-      renderObjectLayer(inst);
-      $(".annotation-item[data-id='"+inst.id+"']").find(".annotation-name span").addClass("annotation-focus");
-
       // Automatically open the new popup with data about the shape
       window.setTimeout(function(){
         inst.trigger.openTooltip();
@@ -570,6 +566,8 @@ else if (wo == "no"){
   function renderObjectLayer(object) {
     // Check that the object isn't already rendered in the list
     var user = checkAuth();
+
+    console.log(user)
       if (user.uid == "6imDRKIl9oc2qHxwvTirQrJC1yd2") {
         if (object.verif == "si") {
       
@@ -890,8 +888,15 @@ var marker_icon;
           // Create the popup that shows data about the marker
       
      
-          marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
+          if (user.uid == "6imDRKIl9oc2qHxwvTirQrJC1yd2"){
+            marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><img width="15" height="15" src="assets/user.png">'+snapshot.user+'<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
 
+          } else {
+            marker.bindTooltip('<h1>'+snapshot.name+'</h1><h2>'+snapshot.desc+'</h2><div class="shape-data"><h3><img src="assets/marker-small-icon.svg">'+snapshot.tipo+'<br><br><button class="route-button">Trazar ruta</button>'+'</h3></div><div class="arrow-down"></div>', {permanent: false, direction:"top", className:"create-shape-flow tooltip-off", interactive:false, bubblingMouseEvents:false, offset: L.point({x: 0, y: -35})});
+
+          }
+
+          
           if (snapshot.tipo == "Útiles" && snapshot.verif == "si"){
               
             marker.addTo(utiles)
@@ -1031,6 +1036,8 @@ var marker_icon;
     
   }
 
+
+
   function rutastop(){
 
     $(".leaflet-touch .leaflet-bar").css({"visibility": "hidden"});
@@ -1046,6 +1053,10 @@ var marker_icon;
     } else {
       $("#google-signin").css({"visibility": "hidden"});
       $("#drawing-controls").css({"visibility": "visible"});
+      document.getElementsByClassName("nombr")[0].textContent = 'Nombre: ' +user.displayName;
+      document.getElementsByClassName("userid")[0].textContent = 'ID: ' +user.uid;
+      $(".nombr").css({"visibility": "visible"});
+      $(".userid").css({"visibility": "visible"});
     }
 
   }
