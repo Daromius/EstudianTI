@@ -1057,6 +1057,10 @@ var marker_icon;
       document.getElementsByClassName("userid")[0].textContent = 'ID: ' +user.uid;
       $(".nombr").css({"visibility": "visible"});
       $(".userid").css({"visibility": "visible"});
+
+      if (user.uid == "6imDRKIl9oc2qHxwvTirQrJC1yd2"){
+        $(".admin").css({"visibility": "visible"});
+      }
     }
 
   }
@@ -1064,6 +1068,8 @@ var marker_icon;
 setTimeout(function () {
   buttonsxd();
 }, 1000);
+
+
   // Event handlers
   $(document).on("click", ".edit-button", editmark);
   $(document).on("click", ".route-button", rutamark);
