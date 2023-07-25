@@ -74,6 +74,22 @@
   border-radius: 100px;
   text-decoration: none;
 }
+#popup2 .closebtn {
+    color: black; 
+    background-color: #FFF;
+  border: 1px solid #E7EAEC;
+  box-sizing: border-box;
+  box-shadow: 0px 2px 5px rgba(53, 87, 98, 0.1);
+      position: absolute;
+      padding: 3px 11px;
+      top: 0;
+      right: 10px ;
+      font-size: 28px;
+      background-color: white;
+  margin-top:2%;
+  border-radius: 100px;
+  text-decoration: none;
+}
    
 
 #popup .closebtn:hover {
@@ -141,6 +157,13 @@
     </table>
     <center><h2>Tambien se pueden mostrar y ocultar los marcadores en el menu lateral.</h2></center>
   </div>
+  <div id="popup2">
+    <a href="javascript:void(0)" class="closebtn" onclick="hidetuto()">X</a>
+    <div class="header-text">Tutorial de Marcadores</div>  
+    <div class="subheader-text">Para crear un marcador, clickee en alguna parte del mapa y complete los campos.</div>
+    <br></br>
+    <center><h2>Todos los marcadores son verificados manualmente, ¡asi que sea paciente!</h2></center>
+  </div>
   <div id="overlay"></div>
   </div>
   <div id="mySidebar" class="sidebar">
@@ -183,6 +206,10 @@
       }
       function hideintro() {
          document.getElementById("popup").style.visibility = "hidden";
+         document.getElementById("overlay").style.visibility = "hidden";
+      }
+      function hidetuto() {
+         document.getElementById("popup2").style.visibility = "hidden";
          document.getElementById("overlay").style.visibility = "hidden";
       }
       </script>

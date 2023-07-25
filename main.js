@@ -25,6 +25,7 @@ $(document).ready(function(){
   wa = "no";
   we = "no";
   wo = "no";
+  cece = "no"
 
   // Get URL params
   var params = new URLSearchParams(window.location.search);
@@ -190,6 +191,12 @@ function editmark(marker){
     if (user != "patata") {resetTools();
     
       markerson = true;
+      if (cece == "no") {
+        $("#popup2").css({"visibility": "visible"});
+        $("#overlay").css({"visibility": "visible"});
+        cece = "si"
+      }
+      
       $(".tool-active").removeClass("tool-active");
       $("#marker-tool").addClass("tool-active");
       showAnnotations();} else {
@@ -640,20 +647,12 @@ else if (wo == "no"){
     const id = $(this).parent().parent().attr("data-id");
     const inst = objects.find(x => x.id === id);
     $(".annotation-item[data-id='"+id+"']").remove();
-    if (inst.type != "marker") {
-      inst.trigger.remove();
-      inst.line.remove();
-      db.ref("rooms/"+room+"/objects/"+inst.id).remove();
-      objects = $.grep(objects, function(e){
-           return e.id != inst.id;
-      });
-    } else {
       inst.marker.remove();
       db.ref("rooms/"+room+"/objects/"+inst.id).remove();
       objects = $.grep(objects, function(e){
            return e.id != inst.id;
       });
-    }
+    
   }
   
   // Toggle annotation visibility

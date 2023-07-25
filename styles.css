@@ -33,6 +33,22 @@ body {
   max-width: 90%;
   z-index: 99999999;
 }
+#popup2 {
+  position: absolute;
+  margin: auto;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  height: max-content;
+  background-color: #FFF;
+  border-radius: 5px;
+  font-size: 5px;
+  width: 480px;
+  max-width: 90%;
+  z-index: 99999999;
+  visibility: hidden;
+}
 .header-text {
   font-family: Inter;
   font-weight: 700;
